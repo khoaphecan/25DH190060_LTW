@@ -1,0 +1,62 @@
+﻿
+@model _25DH190060_LTW.Models.Product
+
+<head>
+    <style>
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px 5px;
+            box-sizing: border-box;
+            border: 1px solid #d9d0d0;
+            border-radius: 10px;
+            background-color: whitesmoke;
+            resize: none;
+        }
+    </style>
+</head>
+
+<!-- Danh mục -->
+<div class="form-group">
+    <div class="control-label col-md-2">Danh mục</div>
+    <div class="col-md-10">
+        @Html.DropDownList("CategoryID", null, htmlAttributes: new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.CategoryID, "", new { @class = "text-danger" })
+    </div>
+</div>
+
+<!-- Tên sản phẩm -->
+<div class="form-group">
+    <div class="control-label col-md-2">Tên sản phẩm</div>
+    <div class="col-md-10">
+        @Html.EditorFor(model => model.ProductName, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ProductName, "", new { @class = "text-danger" })
+    </div>
+</div>
+
+<!-- Mô tả -->
+<div class="form-group">
+    <div class="control-label col-md-2">Mô tả</div>
+    <div class="col-md-10">
+        @Html.TextAreaFor(model => model.ProductDecription, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ProductDecription, "", new { @class = "text-danger" })
+    </div>
+</div>
+
+<!-- Đơn giá -->
+<div class="form-group">
+    <div class="control-label col-md-2">Đơn giá</div>
+    <div class="col-md-10">
+        @Html.EditorFor(model => model.ProductPrice, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ProductPrice, "", new { @class = "text-danger" })
+    </div>
+</div>
+
+<!-- Chọn ảnh upload -->
+<div class="form-group">
+    <div class="control-label col-md-2">Hình ảnh</div>
+    <div class="col-md-10">
+        @Html.TextBoxFor(model => model.UploadImg, new { htmlAttributes = new { @class = "form-control" }, type = "file" })
+        @Html.ValidationMessageFor(model => model.ProductImage, "", new { @class = "text-danger" })
+    </div>
+</div>
