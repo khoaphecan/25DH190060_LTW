@@ -1,47 +1,81 @@
-﻿@model _25DH190060_LTW.Models.ViewModel.ProductSearchVM
+﻿@model IEnumerable<_25DH190060_LTW.Models.ViewModel.CategoryStatVM>
 
 @{
-    ViewBag.Title = "Search Product";
+    ViewBag.Title = "Thống kê";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Search</title>
-    <style>
-        .search-container {
-            padding-top: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+<h2 class="bg-success" style="padding: 10px;">THỐNG KÊ HÀNG HÓA TỪNG LOẠI</h2>
+
+<table class="table table-bordered table-striped" style="margin-top: 15px;">
+    <thead>
+        <tr class="bg-success text-white">
+            <th>LOẠI HÀNG</th>
+            <th>SỐ LƯỢNG</th>
+            <th>GIÁ CAO NHẤT</th>
+            <th>GIÁ THẤP NHẤT</th>
+            <th>GIÁ TRUNG BÌNH</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><strong>@item.CategoryName</strong></td>
+                <td>@item.ProductCount</td>
+                <td>@string.Format("{0:N0} đ", item.MaxPrice)</td>
+                <td>@string.Format("{0:N0} đ", item.MinPrice)</td>
+                <td>@string.Format("{0:N0} đ", item.AvgPrice)</td>
+            </tr>
         }
+    </tbody>
+</table>
 
-        .order-container {
-            margin-top: 15px;
-            text-align: center;
+<!-- Nút chuyển xuống xem biểu đồ -->
+<div style="margin: 20px 0;">
+    <a href="#chart-section" class="btn btn-default" style="border: 1px solid #ccc;">Xem biểu đồ</a>
+</div>
+
+<hr />
+
+<!-- Khu vực Biểu đồ Google Chart -->
+<div id="chart-section" style="margin-top: 30px;">
+    <h3 class="bg-success" style="padding: 10px;">BIỂU ĐỒ THỐNG KÊ</h3>
+    <h4 style="text-align: center; margin-top: 20px;">TỶ LỆ HÀNG HÓA</h4>
+
+    <div id="piechart" style="width: 100%; height: 500px; display: flex; justify-content: center;"></div>
+</div>
+
+@section Scripts {
+    <!-- Tải thư viện Google Chart -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            // Nạp dữ liệu từ Razor Model vào DataTable của Google Charts
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Loại hàng');
+            data.addColumn('number', 'Số lượng');
+
+            data.addRows([
+                @foreach (var item in Model)
+                {
+                    <text>['@Html.Raw(item.CategoryName)', @item.ProductCount],</text>
+                }
+            ]);
+
+            var options = {
+                title: '',
+                is3D: false,
+                chartArea: { width: '85%', height: '80%' },
+                legend: { position: 'right', alignment: 'center' },
+                fontSize: 14
+            };
+
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+            chart.draw(data, options);
         }
-    </style>
-</head>
-
-<body>
-    @using (Html.BeginForm("Index", "Products", FormMethod.Get))
-    {
-        <div class="form-group search-container">
-            @Html.TextBoxFor(m => m.SearchTerm, new { @class = "form-control", placeholder = "Nhập tên, mô tả hoặc chủng loại sản phẩm" })
-            @Html.TextBoxFor(m => m.MinPrice, new { @class = "form-control", placeholder = "Nhập giá tối thiểu", type = "number" })
-            @Html.TextBoxFor(m => m.MaxPrice, new { @class = "form-control", placeholder = "Nhập giá tối đa", type = "number" })
-
-            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-        </div>
-
-        <div class="form-group order-container">
-            Sắp xếp theo:
-            @Html.ActionLink("Tên tăng dần", "Index", new { sortOrder = "name_asc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice }) |
-            @Html.ActionLink("Tên giảm dần", "Index", new { sortOrder = "name_desc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice }) |
-            @Html.ActionLink("Giá tăng dần", "Index", new { sortOrder = "price_asc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice }) |
-            @Html.ActionLink("Giá giảm dần", "Index", new { sortOrder = "price_desc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })
-        </div>
-    }
-
-    @Html.Partial("PVListProduct", Model)
-</body>
+    </script>
+}
