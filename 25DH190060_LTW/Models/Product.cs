@@ -11,8 +11,8 @@ namespace _25DH190060_LTW.Models
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
+    using System.ComponentModel.DataAnnotations;
     using System.Web;
 
     public partial class Product
@@ -21,7 +21,7 @@ namespace _25DH190060_LTW.Models
         public Product()
         {
             this.OrderDetail = new HashSet<OrderDetail>();
-            ProductImage = "~/Content/images/default_img.png";
+            this.ProductImage = "~/Content/images/default_img.png";
         }
 
         public int ProductID { get; set; }
@@ -31,13 +31,27 @@ namespace _25DH190060_LTW.Models
         public decimal ProductPrice { get; set; }
         public string ProductImage { get; set; }
 
+        [NotMapped]
+        public string ProductDescription
+        {
+            get { return ProductDecription; }
+            set { ProductDecription = value; }
+        }
+
+        [NotMapped]
+        public virtual ICollection<OrderDetail> OrderDetails
+        {
+            get { return OrderDetail; }
+            set { OrderDetail = value; }
+        }
+
+        // Thêm trường dữ liệu UploadImg kiểu HttpPostedFileBase để upload file ảnh
+        // Dùng thuộc tính [NotMapped] để đánh dấu đây là trường dữ liệu không lưu vào DB
+        [NotMapped]
+        public HttpPostedFileBase UploadImg { get; set; }
+
         public virtual Category Category { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderDetail> OrderDetail { get; set; }
-
-        // Bổ sung kiểm tra định dạng và trường UploadImg không lưu DB
-        [RegularExpression(@"[a-zA-Z0-9\s_\\.\-:]+(.png|.jpg|.gif|.PNG|.JPG|.GIF)$", ErrorMessage = "Chỉ chấp nhận các định dạng ảnh PNG, JPG và GIF")]
-        [NotMapped]
-        public HttpPostedFileBase UploadImg { get; set; }
     }
 }

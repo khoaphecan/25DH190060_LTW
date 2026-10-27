@@ -1,0 +1,61 @@
+﻿@model _25DH190060_LTW.Models.ViewModel.ProductDetailsVM
+@{
+    ViewBag.Title = "ProductDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerDetailProduct.css" />
+<link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerHome.css" />
+
+<div class="container-fluid pro">
+    <div class="row">
+        @* Khối bên trái: Ảnh sản phẩm *@
+        <div class="col-md-3 pro-section text-center">
+            <img src="@Url.Content(!string.IsNullOrEmpty(Model.product.ProductImage) ? Model.product.ProductImage : "~/Content/images/default_img.png")" alt="@Model.product.ProductName" class="img-responsive" />
+        </div>
+
+        @* Khối ở giữa: Thông tin sản phẩm & Sản phẩm tương tự *@
+        <div class="col-md-5 pro-section">
+            <div>
+                <h4><strong>@Model.product.ProductName</strong></h4>
+                <p class="pro-sale">Đã bán:&nbsp; @(Model.product.OrderDetail != null ? Model.product.OrderDetail.Count() : 0)</p>
+                <p class="pro-price">@Model.product.ProductPrice.ToString("N0") đ</p>
+                <p>Danh mục:&nbsp; @(Model.product.Category != null ? Model.product.Category.CategoryName : "")</p>
+                <hr />
+                <h5><strong>Mô tả</strong></h5>
+                <p>@Model.product.ProductDecription</p>
+            </div>
+            <hr />
+            @* Khối Related Product *@
+            <div>
+                @Html.Partial("_PVRelatedProduct", Model)
+            </div>
+        </div>
+
+        @* Khối bên phải: Phần tạm tính & Sản phẩm bán chạy *@
+        <div class="col-md-3 pro-section">
+            <div class="form-group">
+                @using (Html.BeginForm("ProductDetails", "Home", FormMethod.Get))
+                {
+                    @Html.Hidden("id", Model.product.ProductID)
+                    <h4><strong>Số lượng</strong></h4>
+                    <p>
+                        @Html.TextBoxFor(model => model.quantity, new { @class = "form-control", @type = "number", @min = 1, onchange = "this.form.submit()" })
+                    </p>
+                    <h4><strong>Tạm tính</strong></h4>
+                    <p class="pro-price">@Model.estimatedValue.ToString("N0") đ</p>
+                    <p>
+                        @Html.ActionLink("Thêm vào giỏ hàng", "AddToCart", "Cart",
+                            new { id = Model.product.ProductID, quantity = Model.quantity },
+                            new { @class = "btn btn-info text-white" })
+                    </p>
+                }
+                <hr />
+            </div>
+            @* Khối TopProduct *@
+            <div>
+                @Html.Partial("_PVTopProduct", Model)
+            </div>
+        </div>
+    </div>
+</div>

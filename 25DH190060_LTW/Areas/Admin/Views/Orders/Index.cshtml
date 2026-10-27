@@ -1,0 +1,39 @@
+﻿@model IEnumerable<_25DH190060_LTW.Models.Order>
+
+@{
+    ViewBag.Title = "Quản Lý Đơn Hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success">DANH SÁCH ĐƠN HÀNG</h2>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-success" style="background-color: #d8ebd2;">
+        <tr>
+            <th>MÃ ĐƠN</th>
+            <th>KHÁCH HÀNG</th>
+            <th>NGÀY ĐẶT</th>
+            <th>TỔNG TIỀN</th>
+            <th>TRẠNG THÁI</th>
+            <th>ĐỊA CHỈ GIAO</th>
+            <th style="width: 150px; text-align: center;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>#@item.OrderID</td>
+                <td>@(item.Customer != null ? item.Customer.CustomerName : "N/A")</td>
+                <td>@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@item.TotalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
+                <td><span class="badge bg-info text-dark">@item.PaymentStatus</span></td>
+                <td>@item.AddressDelivery</td>
+                <td style="text-align: center;">
+                    @Html.ActionLink("Chi tiết", "Details", new { id = item.OrderID }, new { @class = "btn btn-primary btn-sm" })
+                    @Html.ActionLink("Xóa", "Delete", new { id = item.OrderID }, new { @class = "btn btn-danger btn-sm" })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

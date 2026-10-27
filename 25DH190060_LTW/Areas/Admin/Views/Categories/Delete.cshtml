@@ -1,0 +1,31 @@
+﻿@model _25DH190060_LTW.Models.Category
+
+@{
+    ViewBag.Title = "Delete";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success">XÓA DANH MỤC</h2>
+
+<h4 class="alert alert-danger">Bạn thực sự muốn xóa sản phẩm này à?</h4>
+
+@using (Html.BeginForm()) {
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <div class="form-group">
+            <div class="control-label col-md-2 font-weight-bold">Tên danh mục</div>
+            <div class="col-md-10" style="margin-top: 5px;">
+                @* Hiển thị giá trị của CategoryName *@
+                @Html.DisplayFor(model => model.CategoryName)
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Xóa" class="btn btn-primary" />
+                @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-primary" })
+            </div>
+        </div>
+    </div>
+}

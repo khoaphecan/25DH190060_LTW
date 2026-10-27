@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -17,8 +17,8 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // GET: Admin/Customers
         public ActionResult Index()
         {
-            var customer = db.Customer.Include(c => c.User);
-            return View(customer.ToList());
+            var customers = db.Customer.Include(c => c.User).ToList();
+            return View(customers);
         }
 
         // GET: Admin/Customers/Details/5
@@ -28,7 +28,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Customer customer = db.Customer.Find(id);
+            Customer customer = db.Customer.Include(c => c.Order).Include(c => c.User).FirstOrDefault(c => c.CustomerID == id);
             if (customer == null)
             {
                 return HttpNotFound();
@@ -39,13 +39,11 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // GET: Admin/Customers/Create
         public ActionResult Create()
         {
-            ViewBag.Username = new SelectList(db.User, "Username", "Password");
+            ViewBag.Username = new SelectList(db.User, "Username", "Username");
             return View();
         }
 
         // POST: Admin/Customers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "CustomerID,CustomerName,CustomerPhone,CustomerEmail,CustomerAddress,Username")] Customer customer)
@@ -57,7 +55,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Username = new SelectList(db.User, "Username", "Password", customer.Username);
+            ViewBag.Username = new SelectList(db.User, "Username", "Username", customer.Username);
             return View(customer);
         }
 
@@ -73,13 +71,11 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return HttpNotFound();
             }
-            ViewBag.Username = new SelectList(db.User, "Username", "Password", customer.Username);
+            ViewBag.Username = new SelectList(db.User, "Username", "Username", customer.Username);
             return View(customer);
         }
 
         // POST: Admin/Customers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "CustomerID,CustomerName,CustomerPhone,CustomerEmail,CustomerAddress,Username")] Customer customer)
@@ -90,7 +86,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            ViewBag.Username = new SelectList(db.User, "Username", "Password", customer.Username);
+            ViewBag.Username = new SelectList(db.User, "Username", "Username", customer.Username);
             return View(customer);
         }
 

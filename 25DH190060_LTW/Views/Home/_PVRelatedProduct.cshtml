@@ -1,0 +1,28 @@
+﻿@model _25DH190060_LTW.Models.ViewModel.ProductDetailsVM
+@using PagedList.Mvc
+
+<link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerHome.css" />
+
+<!-- Hiển thị danh sách sản phẩm -->
+@if (Model != null && Model.RelatedProducts != null && Model.RelatedProducts.Any())
+{
+    <section class="container-fluid featureProd">
+        <h4 style="font-weight:bold;">Sản phẩm tương tự</h4>
+        <ul class="feature-container">
+            @foreach (var product in Model.RelatedProducts)
+            {
+                <li class="fproduct-item">
+                    <div>
+                        <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
+                            <img src="@Url.Content(!string.IsNullOrEmpty(product.ProductImage) ? product.ProductImage : "~/Content/images/default_img.png")" alt="@product.ProductName" />
+                        </a>
+                    </div>
+                    <div>
+                        <h5>@product.ProductName</h5>
+                        <p class="prodSale">@product.ProductPrice.ToString("N0") đ</p>
+                    </div>
+                </li>
+            }
+        </ul>
+    </section>
+}

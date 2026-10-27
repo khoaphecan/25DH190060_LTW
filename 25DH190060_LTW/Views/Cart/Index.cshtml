@@ -1,0 +1,111 @@
+﻿@model _25DH190060_LTW.Models.ViewModel.Cart
+@{
+    ViewBag.Title = "Giỏ hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .shoppingcart {
+        padding: 10px 0;
+    }
+    .cart-section {
+        margin: 15px 0;
+    }
+    .cart-button {
+        width: 200px;
+        margin: 5px 0;
+    }
+</style>
+
+<script>
+    function cartUpdateQuantity(id, newQuantity) {
+        if (newQuantity < 1) return;
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '@Url.Action("UpdateQuantity", "Cart")';
+
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'id';
+        idInput.value = id;
+        form.appendChild(idInput);
+
+        const quantityInput = document.createElement('input');
+        quantityInput.type = 'hidden';
+        quantityInput.name = 'quantity';
+        quantityInput.value = newQuantity;
+        form.appendChild(quantityInput);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+
+<h2>GIỎ HÀNG</h2>
+<div class="shoppingcart">
+    @if (Model == null || !Model.Items.Any())
+    {
+        <p>Bạn chưa có sản phẩm nào trong giỏ.</p>
+        <p>@Html.ActionLink("Tiếp tục mua hàng", "Index", "Home", null, new { @class = "btn btn-primary" })</p>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-9">
+                <div class="cart-section">
+                    @foreach (var categoryGroup in Model.GroupedItems)
+                    {
+                        <h4>@categoryGroup.Key</h4>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
+                                    <th title="Xóa tất cả mặt hàng trong giỏ">
+                                        <a href="@Url.Action("ClearCart", "Cart")" onclick="return confirm('Bạn có chắc muốn xóa tất cả sản phẩm?');">Xóa tất cả</a>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in categoryGroup)
+                                {
+                                    <tr>
+                                        <td style="width: 80px;">
+                                            <img src="@Url.Content(!string.IsNullOrEmpty(item.ProductImage) ? item.ProductImage : "~/Content/images/default_img.png")" alt="@item.ProductName" style="max-height:60px;" />
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("ProductDetails", "Home", new { id = item.ProductID })">@item.ProductName</a>
+                                        </td>
+                                        <td>
+                                            <button type="button" style="width: 25px;" onclick="cartUpdateQuantity(@item.ProductID, @(item.Quantity - 1))">-</button>
+                                            <input type="number" name="quantity" value="@item.Quantity" min="1" max="100" style="width: 45px; text-align:right;" readonly />
+                                            <button type="button" style="width: 25px;" onclick="cartUpdateQuantity(@item.ProductID, @(item.Quantity + 1))">+</button>
+                                        </td>
+                                        <td>@item.UnitPrice.ToString("N0") đ</td>
+                                        <td><strong>@item.TotalPrice.ToString("N0") đ</strong></td>
+                                        <td>
+                                            <a href="@Url.Action("RemoveItem", "Cart", new { id = item.ProductID })">Xóa</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="cart-section p-3 border">
+                    <p><strong>Tổng giá trị: <span style="color: red; font-size: 18px;">@Model.TotalValue().ToString("N0") đ</span></strong></p>
+                    <p>@Html.ActionLink("Mua hàng", "Checkout", "Order", null, new { @class = "btn btn-danger cart-button" })</p>
+                    <p>@Html.ActionLink("Tiếp tục mua hàng", "Index", "Home", null, new { @class = "btn btn-warning cart-button" })</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cart-section">
+            @Html.Partial("_PVSimilarProduct", Model)
+        </div>
+    }
+</div>

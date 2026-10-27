@@ -11,7 +11,8 @@ namespace _25DH190060_LTW.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel.DataAnnotations.Schema;
+
     public partial class Customer
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
@@ -26,6 +27,13 @@ namespace _25DH190060_LTW.Models
         public string CustomerEmail { get; set; }
         public string CustomerAddress { get; set; }
         public string Username { get; set; }
+
+        [NotMapped]
+        public virtual ICollection<Order> Orders
+        {
+            get { return Order; }
+            set { Order = value; }
+        }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Order> Order { get; set; }

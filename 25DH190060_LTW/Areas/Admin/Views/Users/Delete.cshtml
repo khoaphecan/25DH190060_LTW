@@ -1,0 +1,32 @@
+﻿@model _25DH190060_LTW.Models.User
+
+@{
+    ViewBag.Title = "Xóa Tài Khoản";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success">XÓA TÀI KHOẢN</h2>
+
+<h4 class="alert alert-danger">Bạn thực sự muốn xóa tài khoản này à?</h4>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3 font-weight-bold">Tên đăng nhập:</dt>
+            <dd class="col-sm-9">@Model.Username</dd>
+
+            <dt class="col-sm-3 font-weight-bold">Vai trò:</dt>
+            <dd class="col-sm-9">@Model.UserRole</dd>
+        </dl>
+    </div>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-actions no-color">
+        <input type="submit" value="Xóa" class="btn btn-danger" />
+        @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-outline-secondary" })
+    </div>
+}

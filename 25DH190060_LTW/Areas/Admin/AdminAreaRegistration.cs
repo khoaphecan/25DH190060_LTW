@@ -2,11 +2,11 @@
 
 namespace _25DH190060_LTW.Areas.Admin
 {
-    public class AdminAreaRegistration : AreaRegistration
+    public class AdminAreaRegistration : AreaRegistration 
     {
-        public override string AreaName
+        public override string AreaName 
         {
-            get
+            get 
             {
                 return "Admin";
             }
@@ -15,10 +15,10 @@ namespace _25DH190060_LTW.Areas.Admin
         public override void RegisterArea(AreaRegistrationContext context)
         {
             context.MapRoute(
-                "Admin_default",
-                "Admin/{controller}/{action}/{id}",
-                new { controller = "Home", action = "Index", id = UrlParameter.Optional },
-                new[] { "_25DH190060_LTW.Areas.Admin.Controllers" }
+                name: "Admin_default",
+                url: "Admin/{controller}/{action}/{id}",
+                defaults: new { action = "Index", id = UrlParameter.Optional },
+                namespaces: new[] { "_25DH190060_LTW.Areas.Admin.Controllers" }
             );
         }
     }

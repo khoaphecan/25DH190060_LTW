@@ -3,36 +3,162 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title - Trang Quản Trị MyStore</title>
     @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
     <link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+    @Scripts.Render("~/bundles/modernizr")
+    <style>
+        .admin-nav-bar {
+            background-color: #212529;
+            padding: 14px 0;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .admin-nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .admin-brand {
+            color: #ffffff !important;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none !important;
+            margin-right: 35px;
+        }
+
+        .admin-menu-list {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .admin-menu-list a {
+            color: #ced4da !important;
+            text-decoration: none !important;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .admin-menu-list a:hover {
+            color: #ffffff !important;
+            background-color: #343a40;
+        }
+
+        .admin-link-client {
+            color: #20c997 !important;
+            text-decoration: none !important;
+            font-weight: 600;
+            padding: 8px 14px;
+            border: 1px solid #20c997;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .admin-link-client:hover {
+            background-color: #20c997;
+            color: #ffffff !important;
+        }
+
+        /* Banner & Styling theo biểu mẫu slide */
+        h2.bg-success {
+            background-color: #d8ebd2 !important;
+            color: #2d572c !important;
+            padding: 12px 18px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 26px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        table.bg-info {
+            background-color: #eaf4fb !important;
+        }
+
+        th.bg-success {
+            background-color: #d8ebd2 !important;
+            color: #2d572c !important;
+            font-weight: bold;
+            border-bottom: 1px solid #c3e0bd !important;
+        }
+
+        .search-container {
+            padding-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .order-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        footer {
+            margin-top: 30px;
+            padding: 20px 0;
+            color: #495057;
+        }
+
+        footer h4 {
+            font-size: 18px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
+    <header class="admin-nav-bar">
+        <div class="container admin-nav-container">
+            <div style="display: flex; align-items: center;">
+                @Html.ActionLink("My Store", "Index", "Home", new { area = "Admin" }, new { @class = "admin-brand" })
+                <ul class="admin-menu-list">
+                    <li>@Html.ActionLink("Home", "Index", "Home", new { area = "Admin" }, null)</li>
+                    <li>@Html.ActionLink("Danh mục", "Index", "Categories", new { area = "Admin" }, null)</li>
+                    <li>@Html.ActionLink("Sản phẩm", "Index", "Products", new { area = "Admin" }, null)</li>
+                    <li>@Html.ActionLink("Khách hàng", "Index", "Customers", new { area = "Admin" }, null)</li>
+                    <li>@Html.ActionLink("Đơn hàng", "Index", "Orders", new { area = "Admin" }, null)</li>
+                    <li>@Html.ActionLink("Tài khoản", "Index", "Users", new { area = "Admin" }, null)</li>
                 </ul>
             </div>
+            <div>
+                @Html.ActionLink("Về trang chủ Web", "Index", "Home", new { area = "" }, new { target = "_blank", @class = "admin-link-client" })
+            </div>
         </div>
-    </div>
+    </header>
 
-    <div class="container body-content">
+    <main class="container body-content">
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+            <p>&copy; @DateTime.Now.Year - Tên ứng dụng</p>
+            <h4>Contact</h4>
+            <p>Tên các thành viên trong nhóm</p>
         </footer>
-    </div>
+    </main>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")

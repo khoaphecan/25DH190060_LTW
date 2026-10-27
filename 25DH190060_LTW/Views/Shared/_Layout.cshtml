@@ -1,34 +1,87 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var cart = Session["Cart"] as _25DH190060_LTW.Models.ViewModel.Cart;
+    ViewBag.pmmodel = new _25DH190060_LTW.Models.ViewModel.PersonalMenuVM
+    {
+        IsLoggedIn = User.Identity.IsAuthenticated,
+        Username = User.Identity.IsAuthenticated ? User.Identity.Name : (Session["Username"] != null ? Session["Username"].ToString() : string.Empty),
+        CartCount = (cart != null && cart.Items.Any()) ? cart.Items.Count() : 0
+    };
+    if (!string.IsNullOrEmpty(ViewBag.pmmodel.Username))
+    {
+        ViewBag.pmmodel.IsLoggedIn = true;
+    }
+}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>My Store: @ViewBag.Title</title>
     @Styles.Render("~/Content/css")
+    <link rel="stylesheet" type="text/css" href="~/Content/PagedList.css" />
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="@Url.Action("Index", "Home", new { area = "" })">MyStore</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCustomer">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Home", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+            <div class="collapse navbar-collapse" id="navbarCustomer">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Home", new { area = "" })">Trang chủ</a>
+                    </li>
+                    @Html.Partial("_CategoriesPV")
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            @if (ViewBag.pmmodel.IsLoggedIn)
+                            {
+                                <span>Hello, @ViewBag.pmmodel.Username</span>
+                            }
+                            else
+                            {
+                                <span>Tài khoản</span>
+                            }
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            @if (ViewBag.pmmodel.IsLoggedIn)
+                            {
+                                <li><a class="dropdown-item" href="@Url.Action("ProfileInfo", "Account")">Thông tin tài khoản</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("MyOrder", "Order")">Lịch sử mua hàng</a></li>
+                                if (Session["UserRole"] != null && (Session["UserRole"].ToString().Trim() == "A" || Session["UserRole"].ToString().Trim() == "Admin"))
+                                {
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Home", new { area = "Admin" })">Quản trị Admin</a></li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Logout", "Account")">Đăng xuất</a></li>
+                            }
+                            else
+                            {
+                                <li><a class="dropdown-item" href="@Url.Action("Register", "Account")">Đăng ký</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Login", "Account")">Đăng nhập</a></li>
+                            }
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Cart")">
+                            Giỏ hàng (<span id="cart-count">@ViewBag.pmmodel.CartCount</span>)
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+
     <div class="container body-content">
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+            <p>&copy; @DateTime.Now.Year - MyStore</p>
         </footer>
     </div>
 

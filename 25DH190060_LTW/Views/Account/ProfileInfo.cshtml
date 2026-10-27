@@ -1,0 +1,93 @@
+﻿@model _25DH190060_LTW.Models.ViewModel.ProfileInfoVM
+@{
+    ViewBag.Title = "Thông tin tài khoản";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-3">
+    <h2>THÔNG TIN TÀI KHOẢN</h2>
+
+    <div class="row">
+        <!-- Khối Thông tin cá nhân & Cập nhật -->
+        <div class="col-md-7 mb-4">
+            <div class="panel panel-default border p-3">
+                <h4>Thông tin cá nhân</h4>
+                <hr />
+                @using (Html.BeginForm("UpdateProfile", "Account", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.CustomerID)
+
+                    <div class="form-group mb-2">
+                        <label class="control-label">Tên đăng nhập:</label>
+                        <input type="text" class="form-control" value="@Model.Username" readonly disabled />
+                    </div>
+
+                    <div class="form-group mb-2">
+                        @Html.LabelFor(m => m.CustomerName, new { @class = "control-label" })
+                        @Html.TextBoxFor(m => m.CustomerName, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.CustomerName, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group mb-2">
+                        @Html.LabelFor(m => m.CustomerPhone, new { @class = "control-label" })
+                        @Html.TextBoxFor(m => m.CustomerPhone, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.CustomerPhone, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group mb-2">
+                        @Html.LabelFor(m => m.CustomerEmail, new { @class = "control-label" })
+                        @Html.TextBoxFor(m => m.CustomerEmail, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.CustomerEmail, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group mb-3">
+                        @Html.LabelFor(m => m.CustomerAddress, new { @class = "control-label" })
+                        @Html.TextBoxFor(m => m.CustomerAddress, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.CustomerAddress, "", new { @class = "text-danger" })
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                }
+            </div>
+        </div>
+
+        <!-- Khối Đổi mật khẩu & Tiện ích -->
+        <div class="col-md-5">
+            <div class="panel panel-default border p-3 mb-3">
+                <h4>Đổi mật khẩu</h4>
+                <hr />
+                @using (Html.BeginForm("ChangePassword", "Account", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group mb-2">
+                        <label class="control-label">Mật khẩu hiện tại:</label>
+                        @Html.PasswordFor(m => m.CurrentPassword, new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="control-label">Mật khẩu mới:</label>
+                        @Html.PasswordFor(m => m.NewPassword, new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="control-label">Xác nhận mật khẩu mới:</label>
+                        @Html.PasswordFor(m => m.ConfirmNewPassword, new { @class = "form-control", required = "required" })
+                    </div>
+
+                    <button type="submit" class="btn btn-warning">Đổi mật khẩu</button>
+                }
+            </div>
+
+            <div class="panel panel-default border p-3">
+                <h4>Quản lý đơn hàng</h4>
+                <hr />
+                <p>Tra cứu tình trạng các đơn hàng đã đặt của bạn.</p>
+                <a href="@Url.Action("MyOrder", "Order")" class="btn btn-outline-info w-100">
+                    Xem lịch sử mua hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
