@@ -1,0 +1,79 @@
+﻿@model PagedList.IPagedList<_25DH190060_LTW.Models.Product>
+@using PagedList.Mvc;
+@{
+    ViewBag.Title = ViewBag.CurrentCategory ?? "Danh sách sản phẩm";
+    var categories = ViewBag.Categories as List<_25DH190060_LTW.Models.Category>;
+}
+
+<link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerHome.css" />
+<link rel="stylesheet" type="text/css" href="~/Content/PagedList.css" />
+
+<div class="container my-3">
+    <div class="row">
+        <!-- Sidebar Danh mục -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white fw-bold">
+                    <i class="fa fa-list me-1"></i> Danh mục sản phẩm
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="@Url.Action("ProductList", "Home")" class="list-group-item list-group-item-action @(ViewBag.CategoryID == null ? "active" : "")">
+                        Tất cả sản phẩm
+                    </a>
+                    @if (categories != null)
+                    {
+                        foreach (var cat in categories)
+                        {
+                            <a href="@Url.Action("ProductList", "Home", new { categoryId = cat.CategoryID })"
+                               class="list-group-item list-group-item-action @(ViewBag.CategoryID != null && (int)ViewBag.CategoryID == cat.CategoryID ? "active" : "")">
+                                @cat.CategoryName
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách sản phẩm -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h4 class="text-primary mb-0 fw-bold">@(ViewBag.CurrentCategory ?? "Tất cả sản phẩm")</h4>
+                <span class="text-muted small">Tổng số: @(Model != null ? Model.TotalItemCount : 0) sản phẩm</span>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="list-container">
+                    @foreach (var product in Model)
+                    {
+                        <div class="lproduct-item">
+                            <div>
+                                <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
+                                    <img src="@Url.Content(!string.IsNullOrEmpty(product.ProductImage) ? product.ProductImage : "~/Content/images/default_img.png")" alt="@product.ProductName" />
+                                </a>
+                            </div>
+                            <div>
+                                <p class="prodPrice">@product.ProductPrice.ToString("N0") đ</p>
+                                <p class="prodName">
+                                    <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
+                                        @product.ProductName
+                                    </a>
+                                </p>
+                                <p class="prodCate">@(product.Category != null ? product.Category.CategoryName : "")</p>
+                                <p class="prodSale">Đã bán: @(product.OrderDetail != null ? product.OrderDetail.Count() : 0)</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="pagination-container mt-4">
+                    @Html.PagedListPager(Model, page => Url.Action("ProductList", new { categoryId = ViewBag.CategoryID, searchTerm = ViewBag.SearchTerm, page = page }))
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">Không có sản phẩm nào trong danh mục này.</div>
+            }
+        </div>
+    </div>
+</div>

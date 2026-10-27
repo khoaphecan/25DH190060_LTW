@@ -1,0 +1,141 @@
+﻿@model _25DH190060_LTW.Models.ViewModel.CheckoutVM
+@{
+    ViewBag.Title = "Đặt hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+    function enableAddressEdit() {
+        document.getElementById("shippingAddress").removeAttribute("readonly");
+        document.getElementById("newAddressGroup").style.display = "block";
+    }
+    function updateShippingAddress() {
+        var newAddress = document.getElementById("newShippingAddress").value;
+        if (newAddress && newAddress.trim() !== '') {
+            document.getElementById("shippingAddress").value = newAddress.trim();
+        }
+    }
+</script>
+
+<div class="container my-4">
+    <h2 class="text-primary mb-4"><i class="fa fa-credit-card"></i> THANH TOÁN ĐƠN HÀNG</h2>
+
+    @using (Html.BeginForm("Checkout", "Order", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+        <div class="row">
+            <!-- Thông tin đơn hàng (Danh sách sản phẩm) -->
+            <div class="col-md-7 mb-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white fw-bold">
+                        <i class="fa fa-shopping-basket"></i> Thông tin đơn hàng
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 70px;">Ảnh</th>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center" style="width: 80px;">Số lượng</th>
+                                        <th class="text-end" style="width: 120px;">Đơn giá</th>
+                                        <th class="text-end" style="width: 120px;">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.CartItems != null)
+                                    {
+                                        foreach (var item in Model.CartItems)
+                                        {
+                                            <tr>
+                                                <td class="text-center">
+                                                    <img src="@Url.Content(!string.IsNullOrEmpty(item.ProductImage) ? item.ProductImage : "~/Content/images/default_img.png")"
+                                                         alt="@item.ProductName" style="max-height: 50px; max-width: 50px; object-fit: contain;" />
+                                                </td>
+                                                <td>@item.ProductName</td>
+                                                <td class="text-center">@item.Quantity</td>
+                                                <td class="text-end">@item.UnitPrice.ToString("N0") đ</td>
+                                                <td class="text-end fw-bold text-danger">@item.TotalPrice.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin giao hàng & Thanh toán -->
+            <div class="col-md-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white fw-bold">
+                        <i class="fa fa-truck"></i> Thông tin giao hàng & thanh toán
+                    </div>
+                    <div class="card-body">
+                        <!-- Địa chỉ giao hàng -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Địa chỉ giao hàng:</label>
+                            @Html.TextBoxFor(m => m.ShippingAddress, new { @class = "form-control", @id = "shippingAddress", @readonly = "readonly" })
+                            @Html.ValidationMessageFor(m => m.ShippingAddress, "", new { @class = "text-danger" })
+                            <button type="button" class="btn btn-link px-0 btn-sm text-primary" onclick="enableAddressEdit()">
+                                <i class="fa fa-edit"></i> Chỉnh sửa địa chỉ
+                            </button>
+                        </div>
+
+                        <!-- Ô nhập địa chỉ mới (ẩn mặc định) -->
+                        <div id="newAddressGroup" class="mb-3" style="display: none;">
+                            <label class="form-label text-muted">Nhập địa chỉ mới:</label>
+                            <input type="text" id="newShippingAddress" class="form-control" placeholder="Nhập địa chỉ giao hàng cụ thể..." />
+                        </div>
+
+                        <!-- Hình thức giao hàng -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hình thức giao hàng:</label>
+                            <div class="form-check">
+                                @Html.RadioButtonFor(m => m.ShippingMethod, "Giao hàng nhanh", new { @id = "shipFast", @checked = "checked", @class = "form-check-input" })
+                                <label class="form-check-label" for="shipFast">Giao hàng nhanh (2-3 ngày)</label>
+                            </div>
+                            <div class="form-check">
+                                @Html.RadioButtonFor(m => m.ShippingMethod, "Giao hàng tiết kiệm", new { @id = "shipEco", @class = "form-check-input" })
+                                <label class="form-check-label" for="shipEco">Giao hàng tiết kiệm (4-5 ngày)</label>
+                            </div>
+                            @Html.ValidationMessageFor(m => m.ShippingMethod, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- Hình thức thanh toán -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hình thức thanh toán:</label>
+                            <div class="form-check">
+                                @Html.RadioButtonFor(m => m.PaymentMethod, "Tiền mặt", new { @id = "payCash", @checked = "checked", @class = "form-check-input" })
+                                <label class="form-check-label" for="payCash">Thanh toán tiền mặt khi nhận hàng (COD)</label>
+                            </div>
+                            <div class="form-check">
+                                @Html.RadioButtonFor(m => m.PaymentMethod, "Paypal", new { @id = "payPaypal", @class = "form-check-input" })
+                                <label class="form-check-label" for="payPaypal">Thanh toán qua Paypal</label>
+                            </div>
+                            <div class="form-check">
+                                @Html.RadioButtonFor(m => m.PaymentMethod, "Mua trước trả sau", new { @id = "payLater", @class = "form-check-input" })
+                                <label class="form-check-label" for="payLater">Mua trước trả sau (Trả góp)</label>
+                            </div>
+                            @Html.ValidationMessageFor(m => m.PaymentMethod, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- Tổng số tiền -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tổng thanh toán:</label>
+                            <h3 class="text-danger fw-bold">@Model.TotalAmount.ToString("N0") đ</h3>
+                            @Html.HiddenFor(m => m.TotalAmount)
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <input type="submit" value="Đặt hàng ngay" class="btn btn-danger btn-lg fw-bold" onclick="updateShippingAddress()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

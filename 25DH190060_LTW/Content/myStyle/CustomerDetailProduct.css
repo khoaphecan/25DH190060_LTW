@@ -1,0 +1,18 @@
+/* Style cho trang Chi tiet san pham */
+.pro-price {
+    font-weight: bold;
+    font-size: 22px;
+    color: #dc3545;
+    margin: 12px 0;
+}
+
+.pro-sale {
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.pro-description {
+    line-height: 1.6;
+    color: #495057;
+    margin: 12px 0;
+}

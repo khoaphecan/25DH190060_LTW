@@ -1,59 +1,72 @@
 ﻿@model _25DH190060_LTW.Models.Customer
 
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Chi Tiết Khách Hàng";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2>Details</h2>
+<h2 class="bg-success">CHI TIẾT KHÁCH HÀNG</h2>
 
-<div>
-    <h4>Customer</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.CustomerName)
-        </dt>
+<div class="card mb-4">
+    <div class="card-header bg-info font-weight-bold" style="background-color: #d8ebd2 !important; color: #2d572c;">
+        Thông Tin Khách Hàng
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3 font-weight-bold">Mã khách hàng:</dt>
+            <dd class="col-sm-9">@Model.CustomerID</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.CustomerName)
-        </dd>
+            <dt class="col-sm-3 font-weight-bold">Tài khoản:</dt>
+            <dd class="col-sm-9">@Model.Username</dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.CustomerPhone)
-        </dt>
+            <dt class="col-sm-3 font-weight-bold">Họ và tên:</dt>
+            <dd class="col-sm-9">@Model.CustomerName</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.CustomerPhone)
-        </dd>
+            <dt class="col-sm-3 font-weight-bold">Email:</dt>
+            <dd class="col-sm-9">@Model.CustomerEmail</dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.CustomerEmail)
-        </dt>
+            <dt class="col-sm-3 font-weight-bold">Điện thoại:</dt>
+            <dd class="col-sm-9">@Model.CustomerPhone</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.CustomerEmail)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.CustomerAddress)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.CustomerAddress)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.User.Password)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.User.Password)
-        </dd>
-
-    </dl>
+            <dt class="col-sm-3 font-weight-bold">Địa chỉ:</dt>
+            <dd class="col-sm-9">@Model.CustomerAddress</dd>
+        </dl>
+    </div>
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.CustomerID }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
+
+<h3 class="mt-4 mb-3" style="color: #2d572c;">LỊCH SỬ ĐƠN HÀNG CỦA KHÁCH HÀNG</h3>
+@if (Model.Order != null && Model.Order.Any())
+{
+    <table class="table table-bordered table-hover">
+        <thead class="table-success" style="background-color: #d8ebd2;">
+            <tr>
+                <th>Mã đơn</th>
+                <th>Ngày đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái thanh toán</th>
+                <th>Địa chỉ giao hàng</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model.Order)
+            {
+                <tr>
+                    <td>@order.OrderID</td>
+                    <td>@(order.OrderDate.ToString("dd/MM/yyyy HH:mm"))</td>
+                    <td>@order.TotalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
+                    <td><span class="badge bg-secondary">@order.PaymentStatus</span></td>
+                    <td>@order.AddressDelivery</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="alert alert-info">Khách hàng này chưa có đơn hàng nào.</p>
+}
+
+<div class="mt-3">
+    @Html.ActionLink("Sửa", "Edit", new { id = Model.CustomerID }, new { @class = "btn btn-primary" })
+    @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-outline-secondary" })
+</div>

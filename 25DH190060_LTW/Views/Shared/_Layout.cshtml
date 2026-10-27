@@ -1,36 +1,124 @@
-﻿<!DOCTYPE html>
+﻿@{
+    // Lấy thông tin giỏ hàng
+    var cart = Session["Cart"] as _25DH190060_LTW.Models.ViewModel.Cart;
+    // Tạo đối tượng ViewBag.pmmodel dạng PersonalMenuVM, và lưu trong ViewBag,
+    // khởi tạo dựa trên thông tin tài khoản đăng nhập
+    ViewBag.pmmodel = new _25DH190060_LTW.Models.ViewModel.PersonalMenuVM
+    {
+        IsLoggedIn = User.Identity.IsAuthenticated,
+        Username = User.Identity.IsAuthenticated ? User.Identity.Name : (Session["Username"] != null ? Session["Username"].ToString() : string.Empty),
+        CartCount = (cart != null && cart.Items.Any()) ? cart.Items.Sum(i => i.Quantity) : 0
+    };
+    if (!string.IsNullOrEmpty(ViewBag.pmmodel.Username))
+    {
+        ViewBag.pmmodel.IsLoggedIn = true;
+    }
+}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title - MyStore Demo</title>
     @Styles.Render("~/Content/css")
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/PagedList.css" />
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
+    <!-- Banner Free ship top -->
+    <header class="banner-top-freeship">
+        Free ship đơn từ 40k, giảm nhiều hơn cùng
+        <span style="font-weight: bolder; font-style: italic;">
+            <span style="color: blue;">FREESHIP XTRA</span> <span style="color: red;">FAST</span>
+        </span>
+    </header>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
         <div class="container">
-            @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand fw-bold" href="@Url.Action("Index", "Home", new { area = "" })">
+                <i class="fa fa-shopping-bag text-warning me-1"></i> MyStore
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCustomer" aria-controls="navbarCustomer" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Home", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+
+            <div class="collapse navbar-collapse" id="navbarCustomer">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Home", new { area = "" })"><i class="fa fa-home"></i> Trang chủ</a>
+                    </li>
+                    @Html.Partial("_CategoriesPV")
+                </ul>
+
+                <!-- Personal Menu -->
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" id="navbarAccountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-user me-1"></i>
+                            @if (ViewBag.pmmodel.IsLoggedIn)
+                            {
+                                <span>Hello, @ViewBag.pmmodel.Username</span>
+                            }
+                            else
+                            {
+                                <span>Tài khoản</span>
+                            }
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarAccountDropdown">
+                            @if (ViewBag.pmmodel.IsLoggedIn)
+                            {
+                                <li><a class="dropdown-item" href="@Url.Action("ProfileInfo", "Account")"><i class="fa fa-id-card me-2"></i>Thông tin tài khoản</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("MyOrder", "Order")"><i class="fa fa-history me-2"></i>Lịch sử mua hàng</a></li>
+                                if (Session["UserRole"] != null && (Session["UserRole"].ToString().Trim() == "A" || Session["UserRole"].ToString().Trim() == "Admin"))
+                                {
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger fw-bold" href="@Url.Action("Index", "Home", new { area = "Admin" })"><i class="fa fa-cogs me-2"></i>Trang Quản trị</a></li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="@Url.Action("Logout", "Account")"><i class="fa fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                            }
+                            else
+                            {
+                                <li><a class="dropdown-item" href="@Url.Action("Register", "Account")"><i class="fa fa-user-plus me-2"></i>Đăng ký</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Login", "Account")"><i class="fa fa-sign-in-alt me-2"></i>Đăng nhập</a></li>
+                            }
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-sm btn-outline-warning text-white fw-bold px-3" href="@Url.Action("Index", "Cart")">
+                            <i class="fa fa-shopping-cart me-1"></i> Giỏ hàng (<span id="cart-count">@ViewBag.pmmodel.CartCount</span>)
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+
     <div class="container body-content">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fa fa-check-circle me-1"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa fa-exclamation-triangle me-1"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
-        </footer>
     </div>
+
+    <footer class="bg-light py-4 mt-5 border-top text-center text-muted">
+        <div class="container">
+            <p class="mb-1">&copy; @DateTime.Now.Year - <strong>MyStore Application</strong> | Bản Demo Lập trình Web</p>
+            <p class="mb-0">Sinh viên thực hiện: <strong>25DH190060 - Trần Nguyễn Anh Khoa</strong></p>
+        </div>
+    </footer>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")

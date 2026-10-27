@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using _25DH190060_LTW.Models;
 using _25DH190060_LTW.Models.ViewModel;
@@ -13,16 +15,15 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // GET: Admin/Home
         public ActionResult Index()
         {
-            // Thống kê số lượng, giá cao nhất, thấp nhất, trung bình theo từng loại hàng
-            var stats = db.Product
-                .GroupBy(p => p.Category.CategoryName)
-                .Select(g => new CategoryStatVM
+            var stats = db.Category
+                .Select(c => new CategoryStatsVM
                 {
-                    CategoryName = g.Key,
-                    ProductCount = g.Count(),
-                    MaxPrice = g.Max(p => p.ProductPrice),
-                    MinPrice = g.Min(p => p.ProductPrice),
-                    AvgPrice = g.Average(p => p.ProductPrice)
+                    CategoryID = c.CategoryID,
+                    CategoryName = c.CategoryName,
+                    ProductCount = c.Product.Count(),
+                    MaxPrice = c.Product.Any() ? c.Product.Max(p => p.ProductPrice) : 0,
+                    MinPrice = c.Product.Any() ? c.Product.Min(p => p.ProductPrice) : 0,
+                    AvgPrice = c.Product.Any() ? c.Product.Average(p => p.ProductPrice) : 0
                 })
                 .ToList();
 
@@ -31,7 +32,10 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) db.Dispose();
+            if (disposing)
+            {
+                db.Dispose();
+            }
             base.Dispose(disposing);
         }
     }

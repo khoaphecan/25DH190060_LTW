@@ -1,0 +1,31 @@
+﻿@model _25DH190060_LTW.Models.ViewModel.ProductDetailsVM
+<link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerHome.css" />
+
+<!-- Hiển thị danh sách sản phẩm tương tự -->
+@if (Model != null && Model.RelatedProducts != null && Model.RelatedProducts.Any())
+{
+    <section class="featureProd">
+        <h2>Sản phẩm tương tự</h2>
+        <div class="feature-container">
+            @foreach (var product in Model.RelatedProducts)
+            {
+                <div class="fproduct-item">
+                    <div>
+                        <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
+                            <img src="@Url.Content(!string.IsNullOrEmpty(product.ProductImage) ? product.ProductImage : "~/Content/images/default_img.png")" alt="@product.ProductName" />
+                        </a>
+                    </div>
+                    <div>
+                        <p class="prodPrice">@product.ProductPrice.ToString("N0") đ</p>
+                        <p class="prodName">
+                            <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
+                                @product.ProductName
+                            </a>
+                        </p>
+                        <p class="prodCate">@(product.Category != null ? product.Category.CategoryName : "")</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}

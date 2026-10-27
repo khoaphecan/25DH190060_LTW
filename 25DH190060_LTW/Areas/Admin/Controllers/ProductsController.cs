@@ -1,6 +1,3 @@
-﻿using _25DH190060_LTW.Models;
-using _25DH190060_LTW.Models.ViewModel;
-using PagedList;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,6 +7,9 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using _25DH190060_LTW.Models;
+using _25DH190060_LTW.Models.ViewModel;
+using PagedList;
 
 namespace _25DH190060_LTW.Areas.Admin.Controllers
 {
@@ -21,28 +21,33 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         public ActionResult Index(string searchTerm, decimal? minPrice, decimal? maxPrice, string sortOrder, int? page)
         {
             var model = new ProductSearchVM();
-            var products = db.Product.AsQueryable();
+            var products = db.Product.Include(p => p.Category).AsQueryable();
 
-            // 1. Tìm kiếm theo từ khóa
+            // Tìm kiếm sản phẩm dựa trên từ khóa
             if (!string.IsNullOrEmpty(searchTerm))
             {
+                model.SearchTerm = searchTerm;
                 products = products.Where(p =>
                     p.ProductName.Contains(searchTerm) ||
                     p.ProductDecription.Contains(searchTerm) ||
                     p.Category.CategoryName.Contains(searchTerm));
             }
 
-            // 2. Tìm kiếm theo khoảng giá
+            // Tìm kiếm sản phẩm dựa trên giá tối thiểu
             if (minPrice.HasValue)
             {
+                model.MinPrice = minPrice.Value;
                 products = products.Where(p => p.ProductPrice >= minPrice.Value);
             }
+
+            // Tìm kiếm sản phẩm dựa trên giá tối đa
             if (maxPrice.HasValue)
             {
+                model.MaxPrice = maxPrice.Value;
                 products = products.Where(p => p.ProductPrice <= maxPrice.Value);
             }
 
-            // 3. Sắp xếp
+            // Áp dụng sắp xếp dựa trên lựa chọn của người dùng
             switch (sortOrder)
             {
                 case "name_asc":
@@ -58,20 +63,19 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                     products = products.OrderByDescending(p => p.ProductPrice);
                     break;
                 default:
+                    // Mặc định sắp xếp theo tên
                     products = products.OrderBy(p => p.ProductName);
                     break;
             }
-
-            // 4. Cấu hình phân trang (5 sản phẩm mỗi trang)
-            int pageNumber = (page ?? 1);
-            int pageSize = 5;
-
-            model.SearchTerm = searchTerm;
-            model.MinPrice = minPrice;
-            model.MaxPrice = maxPrice;
             model.SortOrder = sortOrder;
+
+            // Đoạn code liên quan tới phân trang
+            // Lấy số trang hiện tại (mặc định là trang 1 nếu không có giá trị)
+            int pageNumber = page ?? 1;
+            int pageSize = 10; // Số sản phẩm mỗi trang (có thể đổi thành 4 hoặc 10)
             model.PageNumber = pageNumber;
             model.PageSize = pageSize;
+
             model.Products = products.ToPagedList(pageNumber, pageSize);
 
             return View(model);
@@ -106,13 +110,23 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Xử lý upload ảnh
-                if (product.UploadImg != null)
+                // Thêm đoạn code để lấy đường link của ảnh đã upload và lưu ảnh vào thư mục Content/images
+                if (product.UploadImg != null && product.UploadImg.ContentLength > 0)
                 {
                     string filename = Path.GetFileName(product.UploadImg.FileName);
                     string savePath = "~/Content/images/";
                     product.ProductImage = savePath + filename;
-                    product.UploadImg.SaveAs(Path.Combine(Server.MapPath(savePath), filename));
+
+                    string physicalPath = Server.MapPath(savePath);
+                    if (!Directory.Exists(physicalPath))
+                    {
+                        Directory.CreateDirectory(physicalPath);
+                    }
+                    product.UploadImg.SaveAs(Path.Combine(physicalPath, filename));
+                }
+                else if (string.IsNullOrEmpty(product.ProductImage))
+                {
+                    product.ProductImage = "~/Content/images/default_img.png";
                 }
 
                 db.Product.Add(product);
@@ -147,13 +161,19 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Xử lý upload ảnh nếu người dùng chọn ảnh mới
-                if (product.UploadImg != null)
+                // Thêm đoạn code để lấy đường link của ảnh đã upload và lưu ảnh vào thư mục Content/images
+                if (product.UploadImg != null && product.UploadImg.ContentLength > 0)
                 {
                     string filename = Path.GetFileName(product.UploadImg.FileName);
                     string savePath = "~/Content/images/";
                     product.ProductImage = savePath + filename;
-                    product.UploadImg.SaveAs(Path.Combine(Server.MapPath(savePath), filename));
+
+                    string physicalPath = Server.MapPath(savePath);
+                    if (!Directory.Exists(physicalPath))
+                    {
+                        Directory.CreateDirectory(physicalPath);
+                    }
+                    product.UploadImg.SaveAs(Path.Combine(physicalPath, filename));
                 }
 
                 db.Entry(product).State = EntityState.Modified;

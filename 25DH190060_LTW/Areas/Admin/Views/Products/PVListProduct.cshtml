@@ -2,15 +2,19 @@
 @using PagedList.Mvc;
 
 <style>
-    img {
-        height: 150px;
-        max-width: 150px;
+    .product-list-img {
+        height: 100px;
+        width: 100px;
+        object-fit: cover;
+        border-radius: 4px;
     }
 </style>
 
+<!-- Hiển thị danh sách sản phẩm -->
 @if (Model.Products != null && Model.Products.Any())
 {
-    <h2 class="bg-success" style="padding: 10px; margin-top: 20px;">DANH SÁCH SẢN PHẨM</h2>
+    <h2 class="bg-success">DANH SÁCH SẢN PHẨM</h2>
+
     <table class="table bg-info table-responsive">
         <thead>
             <tr>
@@ -26,7 +30,7 @@
             {
                 <tr>
                     <td>
-                        <img src="@Url.Content(product.ProductImage ?? "~/Content/images/default_img.png")" />
+                        <img src="@Url.Content(product.ProductImage ?? "~/Content/images/default_img.png")" class="product-list-img" alt="@product.ProductName" />
                     </td>
                     <td>@Html.DisplayFor(modelItem => product.ProductName)</td>
                     <td>@Html.DisplayFor(modelItem => product.ProductPrice)</td>
@@ -41,25 +45,17 @@
         </tbody>
     </table>
 
-    <!-- Thanh hiển thị phân trang -->
-    <div style="text-align: center;">
-        Trang @(Model.Products.PageCount < Model.Products.PageNumber ? 0 : Model.Products.PageNumber) / @Model.Products.PageCount
-        @Html.PagedListPager(Model.Products, page => Url.Action("Index", new
-        {
-            page,
-            searchTerm = Model.SearchTerm,
-            minPrice = Model.MinPrice,
-            maxPrice = Model.MaxPrice,
-            sortOrder = Model.SortOrder
-        }))
+    <!-- Hiển thị phân trang -->
+    <div class="pagination-container">
+        @Html.PagedListPager(Model.Products, page => Url.Action("Index", new { page, searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, sortOrder = Model.SortOrder }))
     </div>
 }
 else
 {
-    <p class="alert alert-warning" style="margin-top: 20px;">Không tìm được sản phẩm nào phù hợp.</p>
+    <p class="alert alert-warning">Không tìm được sản phẩm nào phù hợp.</p>
 }
 
-<div class="form-group" style="margin-top: 15px;">
+<div class="form-group mt-3">
     <div class="col-md-offset-8 col-md-4">
         @Html.ActionLink("Thêm mới", "Create", null, new { @class = "btn btn-primary" })
     </div>

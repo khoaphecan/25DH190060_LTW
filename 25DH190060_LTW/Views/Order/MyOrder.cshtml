@@ -1,0 +1,140 @@
+﻿@model IEnumerable<_25DH190060_LTW.Models.Order>
+@{
+    ViewBag.Title = "Đơn hàng của tôi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string currentStatus = ViewBag.CurrentStatus as string ?? "Tất cả";
+    string currentSearch = ViewBag.CurrentSearch as string ?? "";
+}
+
+<div class="container my-4">
+    <h2 class="text-primary mb-3"><i class="fa fa-boxes"></i> ĐƠN HÀNG CỦA TÔI</h2>
+
+    <!-- Tabs Trạng thái đơn hàng -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Tất cả" ? "active fw-bold" : "")"
+               href="@Url.Action("MyOrder", "Order", new { status = "Tất cả", search = currentSearch })">
+                Tất cả đơn
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Chờ thanh toán" ? "active fw-bold" : "")"
+               href="@Url.Action("MyOrder", "Order", new { status = "Chờ thanh toán", search = currentSearch })">
+                Chờ thanh toán
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Đang xử lý" ? "active fw-bold" : "")"
+               href="@Url.Action("MyOrder", "Order", new { status = "Đang xử lý", search = currentSearch })">
+                Đang xử lý
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Đang vận chuyển" ? "active fw-bold" : "")"
+               href="@Url.Action("MyOrder", "Order", new { status = "Đang vận chuyển", search = currentSearch })">
+                Đang vận chuyển
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Đã giao" ? "active fw-bold" : "")"
+               href="@Url.Action("MyOrder", "Order", new { status = "Đã giao", search = currentSearch })">
+                Đã giao
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentStatus == "Đã hủy" ? "active fw-bold" : "")"
+               href="@Url.Action("MyOrder", "Order", new { status = "Đã hủy", search = currentSearch })">
+                Đã hủy
+            </a>
+        </li>
+    </ul>
+
+    <!-- Thanh tìm kiếm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            @using (Html.BeginForm("MyOrder", "Order", FormMethod.Get, new { @class = "row g-3" }))
+            {
+                <input type="hidden" name="status" value="@currentStatus" />
+                <div class="col-md-10">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Tìm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm..."
+                           value="@currentSearch" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fa fa-search"></i> Tìm kiếm</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Danh sách đơn hàng -->
+    @if (Model != null && Model.Any())
+    {
+        foreach (var order in Model)
+        {
+            <div class="card shadow-sm mb-4 border-0" style="border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0 !important;">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <span class="fw-bold text-dark">Đơn hàng #@order.OrderID</span>
+                        <span class="text-muted ms-3"><i class="fa fa-calendar-alt"></i> @order.OrderDate.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div>
+                        <span class="badge bg-info text-dark">@order.PaymentStatus</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                            <tbody>
+                                @if (order.OrderDetail != null)
+                                {
+                                    foreach (var detail in order.OrderDetail)
+                                    {
+                                        <tr>
+                                            <td style="width: 70px;">
+                                                <img src="@Url.Content(detail.Product != null && !string.IsNullOrEmpty(detail.Product.ProductImage) ? detail.Product.ProductImage : "~/Content/images/default_img.png")"
+                                                     alt="" style="max-height: 60px; max-width: 60px; object-fit: contain;" />
+                                            </td>
+                                            <td>
+                                                <h6 class="mb-1 fw-bold text-dark">@(detail.Product != null ? detail.Product.ProductName : "Sản phẩm #" + detail.ProductID)</h6>
+                                                <small class="text-muted">Số lượng: x@detail.Quantity | Đơn giá: @detail.UnitPrice.ToString("N0") đ</small>
+                                            </td>
+                                            <td class="text-end fw-bold text-danger">
+                                                @((detail.Quantity * detail.UnitPrice).ToString("N0")) đ
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3 border-top">
+                    <div>
+                        <span class="text-muted">Địa chỉ nhận hàng: </span>
+                        <span>@order.AddressDelivery</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <span>Tổng tiền: </span>
+                            <span class="text-danger fw-bold fs-5">@order.TotalAmount.ToString("N0") đ</span>
+                        </div>
+                        <a href="@Url.Action("OrderSuccess", "Order", new { id = order.OrderID })" class="btn btn-outline-primary btn-sm">
+                            <i class="fa fa-eye"></i> Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card shadow-sm text-center py-5">
+            <i class="fa fa-inbox fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Không tìm thấy đơn hàng nào phù hợp.</h5>
+            <div class="mt-3">
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Mua sắm ngay</a>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,36 @@
+﻿@using _25DH190060_LTW.Models
+@{
+    var categories = ((object)Model) as IEnumerable<Category>;
+    if (categories == null)
+    {
+        categories = ViewBag.Categories as IEnumerable<Category>;
+    }
+    if (categories == null)
+    {
+        using (var db = new MyStoreEntities())
+        {
+            categories = db.Categories.ToList();
+        }
+    }
+}
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa fa-list"></i> Danh mục sản phẩm
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+        <li><a class="dropdown-item" href="@Url.Action("ProductList", "Home")">Tất cả sản phẩm</a></li>
+        <li><hr class="dropdown-divider"></li>
+        @if (categories != null)
+        {
+            foreach (var cat in categories)
+            {
+                <li>
+                    <a class="dropdown-item" href="@Url.Action("ProductList", "Home", new { categoryId = cat.CategoryID })">
+                        @cat.CategoryName
+                    </a>
+                </li>
+            }
+        }
+    </ul>
+</li>

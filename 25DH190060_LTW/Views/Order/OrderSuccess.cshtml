@@ -1,0 +1,76 @@
+﻿@model _25DH190060_LTW.Models.Order
+@{
+    ViewBag.Title = "Xác nhận đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="card shadow-sm p-4">
+        <div class="text-center text-success mb-4">
+            <i class="fa fa-check-circle fa-4x mb-2"></i>
+            <h2>ĐẶT HÀNG THÀNH CÔNG!</h2>
+            <p class="text-muted">Cảm ơn bạn đã mua sắm tại MyStore. Đơn hàng của bạn đang được xử lý.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <h4 class="text-primary border-bottom pb-2">Thông tin đơn hàng</h4>
+                <p><strong>Mã đơn hàng:</strong> #@Model.OrderID</p>
+                <p><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy")</p>
+                <p><strong>Tổng tiền:</strong> <span class="text-danger fw-bold">@Model.TotalAmount.ToString("N0") đ</span></p>
+                <p><strong>Trạng thái thanh toán:</strong> <span class="badge bg-info text-dark">@Model.PaymentStatus</span></p>
+                <p><strong>Phương thức thanh toán:</strong> @Model.PaymentMethod</p>
+                <p><strong>Phương thức giao hàng:</strong> @(Model.DeliveryMethod ?? "Giao hàng nhanh")</p>
+                <p><strong>Địa chỉ giao hàng:</strong> @Model.AddressDelivery</p>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <h4 class="text-primary border-bottom pb-2">Thông tin khách hàng</h4>
+                <p><strong>Họ tên:</strong> @(Model.Customer != null ? Model.Customer.CustomerName : "")</p>
+                <p><strong>Số điện thoại:</strong> @(Model.Customer != null ? Model.Customer.CustomerPhone : "")</p>
+                <p><strong>Email:</strong> @(Model.Customer != null ? Model.Customer.CustomerEmail : "")</p>
+            </div>
+        </div>
+
+        <h4 class="text-primary border-bottom pb-2 mt-3">Chi tiết đơn hàng</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th class="text-center" style="width: 100px;">Số lượng</th>
+                        <th class="text-end" style="width: 140px;">Đơn giá</th>
+                        <th class="text-end" style="width: 140px;">Tổng giá</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.OrderDetail != null)
+                    {
+                        foreach (var item in Model.OrderDetail)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (item.Product != null && !string.IsNullOrEmpty(item.Product.ProductImage))
+                                        {
+                                            <img src="@Url.Content(item.Product.ProductImage)" alt="@item.Product.ProductName" style="max-height: 45px; max-width: 45px; object-fit: contain; margin-right: 10px;" />
+                                        }
+                                        <span>@(item.Product != null ? item.Product.ProductName : "Sản phẩm #" + item.ProductID)</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">@item.UnitPrice.ToString("N0") đ</td>
+                                <td class="text-end fw-bold text-danger">@((item.Quantity * item.UnitPrice).ToString("N0")) đ</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            @Html.ActionLink("Tiếp tục mua sắm", "Index", "Home", null, new { @class = "btn btn-outline-primary" })
+            @Html.ActionLink("Xem lịch sử đơn hàng", "MyOrder", "Order", null, new { @class = "btn btn-primary" })
+        </div>
+    </div>
+</div>

@@ -1,0 +1,24 @@
+﻿@model _25DH190060_LTW.Models.Category
+
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success">CHI TIẾT DANH MỤC</h2>
+
+<div class="form-horizontal">
+    <div class="form-group">
+        <div class="control-label col-md-2 font-weight-bold">Tên danh mục</div>
+        <div class="col-md-10" style="margin-top: 5px;">
+            @Html.DisplayFor(model => model.CategoryName)
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 20px;">
+        <div class="col-md-offset-2 col-md-10">
+            @Html.ActionLink("Sửa", "Edit", new { id = Model.CategoryID }, new { @class = "btn btn-primary" })
+            @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-primary" })
+        </div>
+    </div>
+</div>

@@ -1,60 +1,52 @@
-﻿@model IEnumerable<_25DH190060_LTW.Models.ViewModel.CategoryStatVM>
+﻿@model IEnumerable<_25DH190060_LTW.Models.ViewModel.CategoryStatsVM>
 
 @{
-    ViewBag.Title = "Thống kê";
+    ViewBag.Title = "Thống Kê";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2 class="bg-success" style="padding: 10px;">THỐNG KÊ HÀNG HÓA TỪNG LOẠI</h2>
+<h2 class="bg-success">THỐNG KÊ HÀNG HÓA TỪNG LOẠI</h2>
 
-<table class="table table-bordered table-striped" style="margin-top: 15px;">
-    <thead>
-        <tr class="bg-success text-white">
-            <th>LOẠI HÀNG</th>
-            <th>SỐ LƯỢNG</th>
-            <th>GIÁ CAO NHẤT</th>
-            <th>GIÁ THẤP NHẤT</th>
-            <th>GIÁ TRUNG BÌNH</th>
+<table class="table table-bordered table-hover">
+    <thead class="table-success" style="background-color: #d8ebd2;">
+        <tr>
+            <th class="font-weight-bold">LOẠI HÀNG</th>
+            <th class="font-weight-bold">SỐ LƯỢNG</th>
+            <th class="font-weight-bold">GIÁ CAO NHẤT</th>
+            <th class="font-weight-bold">GIÁ THẤP NHẤT</th>
+            <th class="font-weight-bold">GIÁ TRUNG BÌNH</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td><strong>@item.CategoryName</strong></td>
+                <td>@item.CategoryName</td>
                 <td>@item.ProductCount</td>
-                <td>@string.Format("{0:N0} đ", item.MaxPrice)</td>
-                <td>@string.Format("{0:N0} đ", item.MinPrice)</td>
-                <td>@string.Format("{0:N0} đ", item.AvgPrice)</td>
+                <td>@item.MaxPrice.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
+                <td>@item.MinPrice.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
+                <td>@item.AvgPrice.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
             </tr>
         }
     </tbody>
 </table>
 
-<!-- Nút chuyển xuống xem biểu đồ -->
-<div style="margin: 20px 0;">
-    <a href="#chart-section" class="btn btn-default" style="border: 1px solid #ccc;">Xem biểu đồ</a>
+<div class="mb-4">
+    <button type="button" class="btn btn-outline-secondary" onclick="toggleChart()">Xem biểu đồ</button>
 </div>
 
-<hr />
-
-<!-- Khu vực Biểu đồ Google Chart -->
-<div id="chart-section" style="margin-top: 30px;">
-    <h3 class="bg-success" style="padding: 10px;">BIỂU ĐỒ THỐNG KÊ</h3>
-    <h4 style="text-align: center; margin-top: 20px;">TỶ LỆ HÀNG HÓA</h4>
-
-    <div id="piechart" style="width: 100%; height: 500px; display: flex; justify-content: center;"></div>
+<div id="chartSection" style="margin-top: 30px;">
+    <h2 class="bg-success">BIỂU ĐỒ THỐNG KÊ</h2>
+    <div id="piechart" style="width: 100%; height: 500px;"></div>
 </div>
 
 @section Scripts {
-    <!-- Tải thư viện Google Chart -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
-        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(drawChart);
 
         function drawChart() {
-            // Nạp dữ liệu từ Razor Model vào DataTable của Google Charts
             var data = new google.visualization.DataTable();
             data.addColumn('string', 'Loại hàng');
             data.addColumn('number', 'Số lượng');
@@ -62,20 +54,29 @@
             data.addRows([
                 @foreach (var item in Model)
                 {
-                    <text>['@Html.Raw(item.CategoryName)', @item.ProductCount],</text>
+                    <text>['@Html.Raw(HttpUtility.JavaScriptStringEncode(item.CategoryName))', @item.ProductCount],</text>
                 }
             ]);
 
             var options = {
-                title: '',
-                is3D: false,
-                chartArea: { width: '85%', height: '80%' },
-                legend: { position: 'right', alignment: 'center' },
-                fontSize: 14
+                title: 'TỶ LỆ HÀNG HÓA',
+                is3D: true,
+                fontSize: 14,
+                chartArea: { width: '80%', height: '80%' }
             };
 
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
             chart.draw(data, options);
+        }
+
+        function toggleChart() {
+            var section = document.getElementById('chartSection');
+            if (section.style.display === "none") {
+                section.style.display = "block";
+                drawChart();
+            } else {
+                section.style.display = "none";
+            }
         }
     </script>
 }

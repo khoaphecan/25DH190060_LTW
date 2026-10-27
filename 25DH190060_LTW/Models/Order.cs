@@ -11,7 +11,8 @@ namespace _25DH190060_LTW.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel.DataAnnotations.Schema;
+
     public partial class Order
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
@@ -26,6 +27,29 @@ namespace _25DH190060_LTW.Models
         public decimal TotalAmount { get; set; }
         public string PaymentStatus { get; set; }
         public string AddressDelivery { get; set; }
+        public string DeliveryMethod { get; set; }
+        public string PaymentMethod { get; set; }
+
+        [NotMapped]
+        public string ShippingAddress
+        {
+            get { return AddressDelivery; }
+            set { AddressDelivery = value; }
+        }
+
+        [NotMapped]
+        public string ShippingMethod
+        {
+            get { return DeliveryMethod; }
+            set { DeliveryMethod = value; }
+        }
+
+        [NotMapped]
+        public virtual ICollection<OrderDetail> OrderDetails
+        {
+            get { return OrderDetail; }
+            set { OrderDetail = value; }
+        }
     
         public virtual Customer Customer { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

@@ -1,0 +1,71 @@
+﻿@model _25DH190060_LTW.Models.Order
+
+@{
+    ViewBag.Title = "Chi Tiết Đơn Hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success">CHI TIẾT ĐƠN HÀNG #@Model.OrderID</h2>
+
+<div class="card mb-4">
+    <div class="card-header bg-info font-weight-bold" style="background-color: #d8ebd2 !important; color: #2d572c;">
+        Thông Tin Đơn Hàng
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3 font-weight-bold">Khách hàng:</dt>
+            <dd class="col-sm-9">@(Model.Customer != null ? Model.Customer.CustomerName : "N/A")</dd>
+
+            <dt class="col-sm-3 font-weight-bold">Số điện thoại:</dt>
+            <dd class="col-sm-9">@(Model.Customer != null ? Model.Customer.CustomerPhone : "N/A")</dd>
+
+            <dt class="col-sm-3 font-weight-bold">Ngày đặt hàng:</dt>
+            <dd class="col-sm-9">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3 font-weight-bold">Địa chỉ giao hàng:</dt>
+            <dd class="col-sm-9">@Model.AddressDelivery</dd>
+
+            <dt class="col-sm-3 font-weight-bold">Trạng thái thanh toán:</dt>
+            <dd class="col-sm-9"><span class="badge bg-info text-dark">@Model.PaymentStatus</span></dd>
+
+            <dt class="col-sm-3 font-weight-bold">Tổng tiền:</dt>
+            <dd class="col-sm-9 text-danger font-weight-bold" style="font-size: 18px;">@Model.TotalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</dd>
+        </dl>
+    </div>
+</div>
+
+<h3 style="color: #2d572c;" class="mb-3">DANH SÁCH MẶT HÀNG TRONG ĐƠN</h3>
+<table class="table table-bordered">
+    <thead class="table-success" style="background-color: #d8ebd2;">
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.OrderDetail != null && Model.OrderDetail.Any())
+        {
+            foreach (var detail in Model.OrderDetail)
+            {
+                <tr>
+                    <td>@(detail.Product != null ? detail.Product.ProductName : "SP #" + detail.ProductID)</td>
+                    <td>@detail.Quantity</td>
+                    <td>@detail.UnitPrice.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
+                    <td>@((detail.Quantity * detail.UnitPrice).ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")))</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center text-muted">Không có chi tiết mặt hàng</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="mt-3">
+    @Html.ActionLink("Quay lại danh sách đơn hàng", "Index", null, new { @class = "btn btn-outline-secondary" })
+</div>
