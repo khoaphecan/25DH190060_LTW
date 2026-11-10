@@ -7,6 +7,21 @@
 
 <h2 class="bg-success">QUẢN LÝ KHÁCH HÀNG</h2>
 
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <table class="table table-bordered table-hover">
     <thead class="table-success" style="background-color: #d8ebd2;">
         <tr>
@@ -50,7 +65,8 @@
         var selectAll = document.getElementById('selectAllCheckbox');
         if (selectAll) selectAll.checked = val;
     }
-    function toggleSelectAll(master) {
-        checkAll(master.checked);
+
+    function toggleSelectAll(source) {
+        document.querySelectorAll('.cust-chk').forEach(c => c.checked = source.checked);
     }
 </script>

@@ -9,6 +9,13 @@
 
 <h4 class="alert alert-danger">Bạn thực sự muốn xóa tài khoản này à?</h4>
 
+@if (Model.Customer != null && Model.Customer.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Lưu ý:</strong> Tài khoản này đang liên kết với <strong>@Model.Customer.Count()</strong> hồ sơ khách hàng. Để bảo vệ dữ liệu khách hàng, hệ thống sẽ không cho phép xóa tài khoản này.
+    </div>
+}
+
 <div class="card mb-4">
     <div class="card-body">
         <dl class="row mb-0">
@@ -16,7 +23,9 @@
             <dd class="col-sm-9">@Model.Username</dd>
 
             <dt class="col-sm-3 font-weight-bold">Vai trò:</dt>
-            <dd class="col-sm-9">@Model.UserRole</dd>
+            <dd class="col-sm-9">
+                @(Model.UserRole == "A" || Model.UserRole == "Admin" ? "Quản trị viên (Admin)" : "Khách hàng (Customer)")
+            </dd>
         </dl>
     </div>
 </div>

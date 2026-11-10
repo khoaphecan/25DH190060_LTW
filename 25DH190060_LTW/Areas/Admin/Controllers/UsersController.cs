@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -86,7 +86,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            User user = db.User.Find(id);
+            User user = db.User.Include(u => u.Customer).FirstOrDefault(u => u.Username == id);
             if (user == null)
             {
                 return HttpNotFound();
@@ -99,9 +99,30 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(string id)
         {
-            User user = db.User.Find(id);
-            db.User.Remove(user);
-            db.SaveChanges();
+            User user = db.User.Include(u => u.Customer).FirstOrDefault(u => u.Username == id);
+            if (user == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Kiểm tra nếu tài khoản đang liên kết với hồ sơ khách hàng
+            if (user.Customer != null && user.Customer.Any())
+            {
+                TempData["ErrorMessage"] = "Không thể xóa tài khoản này vì đã liên kết với hồ sơ khách hàng!";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                db.User.Remove(user);
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Xóa tài khoản thành công!";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa tài khoản này do ràng buộc dữ liệu liên quan!";
+            }
+
             return RedirectToAction("Index");
         }
 

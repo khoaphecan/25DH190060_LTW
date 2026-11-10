@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -97,7 +97,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Customer customer = db.Customer.Find(id);
+            Customer customer = db.Customer.Include(c => c.Order).FirstOrDefault(c => c.CustomerID == id);
             if (customer == null)
             {
                 return HttpNotFound();
@@ -110,9 +110,30 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Customer customer = db.Customer.Find(id);
-            db.Customer.Remove(customer);
-            db.SaveChanges();
+            Customer customer = db.Customer.Include(c => c.Order).FirstOrDefault(c => c.CustomerID == id);
+            if (customer == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Kiểm tra nếu khách hàng đã có đơn hàng trong hệ thống
+            if (customer.Order != null && customer.Order.Any())
+            {
+                TempData["ErrorMessage"] = "Không thể xóa khách hàng này vì đã có lịch sử đơn hàng trong hệ thống!";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                db.Customer.Remove(customer);
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Xóa khách hàng thành công!";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa khách hàng này do ràng buộc dữ liệu liên quan!";
+            }
+
             return RedirectToAction("Index");
         }
 

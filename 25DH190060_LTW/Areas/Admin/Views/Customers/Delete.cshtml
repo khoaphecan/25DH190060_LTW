@@ -9,6 +9,13 @@
 
 <h4 class="alert alert-danger">Bạn thực sự muốn xóa khách hàng này à?</h4>
 
+@if (Model.Order != null && Model.Order.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Lưu ý:</strong> Khách hàng này đã phát sinh <strong>@Model.Order.Count()</strong> đơn hàng trong hệ thống. Để bảo toàn lịch sử giao dịch, hệ thống sẽ không cho phép xóa khách hàng này.
+    </div>
+}
+
 <div class="card mb-4">
     <div class="card-body">
         <dl class="row mb-0">
