@@ -9,6 +9,13 @@
 
 <h4 class="alert alert-danger">Bạn thực sự muốn xóa sản phẩm này à?</h4>
 
+@if (Model.OrderDetail != null && Model.OrderDetail.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Lưu ý:</strong> Sản phẩm này đã có trong đơn hàng của khách hàng. Để bảo vệ lịch sử giao dịch, hệ thống sẽ không cho phép xóa sản phẩm này.
+    </div>
+}
+
 @Html.Partial("PVProductInfo", Model)
 
 @using (Html.BeginForm())

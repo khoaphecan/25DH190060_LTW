@@ -228,7 +228,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Product product = db.Product.Find(id);
+            Product product = db.Product.Include(p => p.OrderDetail).Include(p => p.Category).FirstOrDefault(p => p.ProductID == id);
             if (product == null)
             {
                 return HttpNotFound();
@@ -241,9 +241,30 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Product product = db.Product.Find(id);
-            db.Product.Remove(product);
-            db.SaveChanges();
+            Product product = db.Product.Include(p => p.OrderDetail).FirstOrDefault(p => p.ProductID == id);
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Kiểm tra nếu sản phẩm đã có trong đơn hàng
+            if (product.OrderDetail != null && product.OrderDetail.Any())
+            {
+                TempData["ErrorMessage"] = "Không thể xóa sản phẩm này vì đã có trong đơn hàng!";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                db.Product.Remove(product);
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Xóa sản phẩm thành công!";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa sản phẩm này vì có dữ liệu ràng buộc liên quan!";
+            }
+
             return RedirectToAction("Index");
         }
 
