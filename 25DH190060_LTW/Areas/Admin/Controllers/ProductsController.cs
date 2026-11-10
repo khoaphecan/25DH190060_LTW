@@ -122,6 +122,15 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                 // Thêm đoạn code để lấy đường link của ảnh đã upload và lưu ảnh vào thư mục Content/images
                 if (product.UploadImg != null && product.UploadImg.ContentLength > 0)
                 {
+                    var allowedExtensions = new[] { ".png", ".jpg", ".jpeg", ".gif" };
+                    var ext = Path.GetExtension(product.UploadImg.FileName).ToLower();
+                    if (!allowedExtensions.Contains(ext))
+                    {
+                        ModelState.AddModelError("UploadImg", "Chỉ chấp nhận các định dạng ảnh: PNG, JPG, JPEG, GIF.");
+                        ViewBag.CategoryID = new SelectList(db.Category, "CategoryID", "CategoryName", product.CategoryID);
+                        return View(product);
+                    }
+
                     string filename = Path.GetFileName(product.UploadImg.FileName);
                     string savePath = "~/Content/images/";
                     product.ProductImage = savePath + filename;
@@ -173,6 +182,15 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                 // Thêm đoạn code để lấy đường link của ảnh đã upload và lưu ảnh vào thư mục Content/images
                 if (product.UploadImg != null && product.UploadImg.ContentLength > 0)
                 {
+                    var allowedExtensions = new[] { ".png", ".jpg", ".jpeg", ".gif" };
+                    var ext = Path.GetExtension(product.UploadImg.FileName).ToLower();
+                    if (!allowedExtensions.Contains(ext))
+                    {
+                        ModelState.AddModelError("UploadImg", "Chỉ chấp nhận các định dạng ảnh: PNG, JPG, JPEG, GIF.");
+                        ViewBag.CategoryID = new SelectList(db.Category, "CategoryID", "CategoryName", product.CategoryID);
+                        return View(product);
+                    }
+
                     string filename = Path.GetFileName(product.UploadImg.FileName);
                     string savePath = "~/Content/images/";
                     product.ProductImage = savePath + filename;
@@ -183,9 +201,19 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                         Directory.CreateDirectory(physicalPath);
                     }
                     product.UploadImg.SaveAs(Path.Combine(physicalPath, filename));
+
+                    db.Entry(product).State = EntityState.Modified;
+                }
+                else
+                {
+                    // Nếu không upload ảnh mới, giữ nguyên ảnh cũ
+                    db.Entry(product).State = EntityState.Modified;
+                    if (string.IsNullOrEmpty(product.ProductImage))
+                    {
+                        db.Entry(product).Property(x => x.ProductImage).IsModified = false;
+                    }
                 }
 
-                db.Entry(product).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
