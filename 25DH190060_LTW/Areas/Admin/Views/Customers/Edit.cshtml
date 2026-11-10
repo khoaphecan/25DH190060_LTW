@@ -11,7 +11,7 @@
 {
     @Html.AntiForgeryToken()
 
-    <div class="container-fluid">
+    <div class="container-fluid mt-3">
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         @Html.HiddenFor(model => model.CustomerID)
 
@@ -51,7 +51,8 @@
 
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-primary">Lưu</button>
-            @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-outline-secondary" })
+            <button type="reset" class="btn btn-secondary">Nhập lại</button>
+            @Html.ActionLink("Danh sách", "Index", null, new { @class = "btn btn-primary" })
         </div>
     </div>
 }
