@@ -17,7 +17,10 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // GET: Admin/Customers
         public ActionResult Index()
         {
-            var customers = db.Customer.Include(c => c.User).ToList();
+            // Chỉ hiển thị những người dùng thực sự là Khách hàng (UserRole = 'C' hoặc bắt đầu bằng 'C')
+            var customers = db.Customer.Include(c => c.User)
+                .Where(c => c.User == null || c.User.UserRole.StartsWith("C"))
+                .ToList();
             return View(customers);
         }
 
@@ -39,8 +42,11 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // GET: Admin/Customers/Create
         public ActionResult Create()
         {
+            // Chỉ lấy tài khoản khách hàng (Role 'C') chưa từng được gán cho Customer nào
             var usedUsernames = db.Customer.Select(c => c.Username).ToList();
-            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username)).ToList();
+            var availableUsers = db.User
+                .Where(u => u.UserRole.StartsWith("C") && !usedUsernames.Contains(u.Username))
+                .ToList();
             ViewBag.Username = new SelectList(availableUsers, "Username", "Username");
             return View();
         }
@@ -54,13 +60,21 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 ModelState.AddModelError("Username", "Vui lòng chọn tài khoản liên kết.");
             }
-            else if (!db.User.Any(u => u.Username == customer.Username))
+            else
             {
-                ModelState.AddModelError("Username", "Tài khoản này không tồn tại trong hệ thống.");
-            }
-            else if (db.Customer.Any(c => c.Username == customer.Username))
-            {
-                ModelState.AddModelError("Username", "Tài khoản này đã được gán cho một khách hàng khác.");
+                var user = db.User.FirstOrDefault(u => u.Username == customer.Username);
+                if (user == null)
+                {
+                    ModelState.AddModelError("Username", "Tài khoản này không tồn tại trong hệ thống.");
+                }
+                else if (user.UserRole.StartsWith("A"))
+                {
+                    ModelState.AddModelError("Username", "Tài khoản quản trị viên (Admin) không được tạo hồ sơ khách hàng.");
+                }
+                else if (db.Customer.Any(c => c.Username == customer.Username))
+                {
+                    ModelState.AddModelError("Username", "Tài khoản này đã được gán cho một khách hàng khác.");
+                }
             }
 
             if (ModelState.IsValid)
@@ -79,7 +93,9 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             }
 
             var usedUsernames = db.Customer.Select(c => c.Username).ToList();
-            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username) || u.Username == customer.Username).ToList();
+            var availableUsers = db.User
+                .Where(u => u.UserRole.StartsWith("C") && (!usedUsernames.Contains(u.Username) || u.Username == customer.Username))
+                .ToList();
             ViewBag.Username = new SelectList(availableUsers, "Username", "Username", customer.Username);
             return View(customer);
         }
@@ -97,7 +113,9 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                 return HttpNotFound();
             }
             var usedUsernames = db.Customer.Where(c => c.CustomerID != customer.CustomerID).Select(c => c.Username).ToList();
-            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username) || u.Username == customer.Username).ToList();
+            var availableUsers = db.User
+                .Where(u => u.UserRole.StartsWith("C") && (!usedUsernames.Contains(u.Username) || u.Username == customer.Username))
+                .ToList();
             ViewBag.Username = new SelectList(availableUsers, "Username", "Username", customer.Username);
             return View(customer);
         }
@@ -111,13 +129,21 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 ModelState.AddModelError("Username", "Vui lòng chọn tài khoản liên kết.");
             }
-            else if (!db.User.Any(u => u.Username == customer.Username))
+            else
             {
-                ModelState.AddModelError("Username", "Tài khoản này không tồn tại trong hệ thống.");
-            }
-            else if (db.Customer.Any(c => c.Username == customer.Username && c.CustomerID != customer.CustomerID))
-            {
-                ModelState.AddModelError("Username", "Tài khoản này đã được gán cho một khách hàng khác.");
+                var user = db.User.FirstOrDefault(u => u.Username == customer.Username);
+                if (user == null)
+                {
+                    ModelState.AddModelError("Username", "Tài khoản này không tồn tại trong hệ thống.");
+                }
+                else if (user.UserRole.StartsWith("A"))
+                {
+                    ModelState.AddModelError("Username", "Tài khoản quản trị viên (Admin) không được tạo hồ sơ khách hàng.");
+                }
+                else if (db.Customer.Any(c => c.Username == customer.Username && c.CustomerID != customer.CustomerID))
+                {
+                    ModelState.AddModelError("Username", "Tài khoản này đã được gán cho một khách hàng khác.");
+                }
             }
 
             if (ModelState.IsValid)
@@ -136,7 +162,9 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             }
 
             var usedUsernames = db.Customer.Where(c => c.CustomerID != customer.CustomerID).Select(c => c.Username).ToList();
-            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username) || u.Username == customer.Username).ToList();
+            var availableUsers = db.User
+                .Where(u => u.UserRole.StartsWith("C") && (!usedUsernames.Contains(u.Username) || u.Username == customer.Username))
+                .ToList();
             ViewBag.Username = new SelectList(availableUsers, "Username", "Username", customer.Username);
             return View(customer);
         }
