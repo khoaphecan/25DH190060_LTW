@@ -1,9 +1,19 @@
 ﻿@using _25DH190060_LTW.Models
 @{
-    List<Category> categories;
-    using (var db = new MyStoreEntities())
+    List<Category> categories = new List<Category>();
+    try
     {
-        categories = db.Categories.ToList();
+        using (var db = new MyStoreEntities())
+        {
+            if (db.Category != null)
+            {
+                categories = db.Category.ToList() ?? new List<Category>();
+            }
+        }
+    }
+    catch
+    {
+        categories = new List<Category>();
     }
 }
 
@@ -14,13 +24,16 @@
     <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
         <li><a class="dropdown-item" href="@Url.Action("ProductList", "Home")">Tất cả sản phẩm</a></li>
         <li><hr class="dropdown-divider"></li>
-        @foreach (var cat in categories)
+        @if (categories != null && categories.Any())
         {
-            <li>
-                <a class="dropdown-item" href="@Url.Action("ProductList", "Home", new { categoryId = cat.CategoryID })">
-                    @cat.CategoryName
-                </a>
-            </li>
+            foreach (var cat in categories)
+            {
+                <li>
+                    <a class="dropdown-item" href="@Url.Action("ProductList", "Home", new { categoryId = cat.CategoryID })">
+                        @cat.CategoryName
+                    </a>
+                </li>
+            }
         }
     </ul>
 </li>

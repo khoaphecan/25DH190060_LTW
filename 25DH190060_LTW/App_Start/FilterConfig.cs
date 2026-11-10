@@ -7,7 +7,8 @@ namespace _25DH190060_LTW
     {
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
-            filters.Add(new HandleErrorAttribute());
+            // Tạm thời comment HandleErrorAttribute để tránh nuốt exception nội bộ và chuyển hướng sang /Shared/Error
+            // filters.Add(new HandleErrorAttribute());
         }
     }
 }

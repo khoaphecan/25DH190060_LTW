@@ -52,7 +52,7 @@
                             {
                                 <li><a class="dropdown-item" href="@Url.Action("ProfileInfo", "Account")">Thông tin tài khoản</a></li>
                                 <li><a class="dropdown-item" href="@Url.Action("MyOrder", "Order")">Lịch sử mua hàng</a></li>
-                                if (Session["UserRole"] != null && (Session["UserRole"].ToString().Trim() == "A" || Session["UserRole"].ToString().Trim() == "Admin"))
+                                @if (Session["UserRole"] != null && (Session["UserRole"].ToString().Trim() == "A" || Session["UserRole"].ToString().Trim() == "Admin"))
                                 {
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="@Url.Action("Index", "Home", new { area = "Admin" })">Quản trị Admin</a></li>
