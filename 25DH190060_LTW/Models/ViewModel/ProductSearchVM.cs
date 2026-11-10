@@ -15,6 +15,9 @@ namespace _25DH190060_LTW.Models.ViewModel
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
 
+        // Tiêu chí lọc theo danh mục
+        public int? CategoryID { get; set; }
+
         // Thứ tự sắp xếp
         public string SortOrder { get; set; }
 

@@ -58,6 +58,21 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Kiểm tra nếu trạng thái chuyển sang "Đã hủy" thì hoàn trả lại số lượng tồn kho
+                var oldOrder = db.Order.Include(o => o.OrderDetail).AsNoTracking().FirstOrDefault(o => o.OrderID == order.OrderID);
+                if (oldOrder != null && oldOrder.PaymentStatus != "Đã hủy" && order.PaymentStatus == "Đã hủy")
+                {
+                    var details = db.OrderDetail.Where(d => d.OrderID == order.OrderID).ToList();
+                    foreach (var d in details)
+                    {
+                        var pro = db.Product.Find(d.ProductID);
+                        if (pro != null)
+                        {
+                            pro.Quantity += d.Quantity;
+                        }
+                    }
+                }
+
                 db.Entry(order).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -85,15 +100,50 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Order order = db.Order.Find(id);
-            // Xóa các chi tiết đơn hàng trước nếu có
-            var details = db.OrderDetail.Where(d => d.OrderID == id).ToList();
-            foreach (var d in details)
+            Order order = db.Order.Include(o => o.OrderDetail).FirstOrDefault(o => o.OrderID == id);
+            if (order != null)
             {
-                db.OrderDetail.Remove(d);
+                // Nếu đơn hàng chưa bị hủy thì khi xóa hoàn trả lại số lượng tồn kho
+                if (order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
+                {
+                    foreach (var d in order.OrderDetail)
+                    {
+                        var pro = db.Product.Find(d.ProductID);
+                        if (pro != null)
+                        {
+                            pro.Quantity += d.Quantity;
+                        }
+                    }
+                }
+
+                var details = db.OrderDetail.Where(d => d.OrderID == id).ToList();
+                foreach (var d in details)
+                {
+                    db.OrderDetail.Remove(d);
+                }
+                db.Order.Remove(order);
+                db.SaveChanges();
             }
-            db.Order.Remove(order);
-            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        // POST: Admin/Orders/Cancel/5
+        public ActionResult Cancel(int id)
+        {
+            Order order = db.Order.Include(o => o.OrderDetail).FirstOrDefault(o => o.OrderID == id);
+            if (order != null && order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
+            {
+                foreach (var d in order.OrderDetail)
+                {
+                    var pro = db.Product.Find(d.ProductID);
+                    if (pro != null)
+                    {
+                        pro.Quantity += d.Quantity;
+                    }
+                }
+                order.PaymentStatus = "Đã hủy";
+                db.SaveChanges();
+            }
             return RedirectToAction("Index");
         }
 

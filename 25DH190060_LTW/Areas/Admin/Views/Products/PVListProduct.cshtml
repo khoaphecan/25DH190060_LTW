@@ -21,8 +21,9 @@
                 <th class="bg-success col-md-2">Hình ảnh</th>
                 <th class="bg-success col-md-3">Tên sản phẩm</th>
                 <th class="bg-success col-md-1">Đơn giá</th>
+                <th class="bg-success col-md-1">Tồn kho</th>
                 <th class="bg-success col-md-2">Danh mục</th>
-                <th class="bg-success col-md-4"></th>
+                <th class="bg-success col-md-3"></th>
             </tr>
         </thead>
         <tbody>
@@ -33,7 +34,8 @@
                         <img src="@Url.Content(product.ProductImage ?? "~/Content/images/default_img.png")" class="product-list-img" alt="@product.ProductName" />
                     </td>
                     <td>@Html.DisplayFor(modelItem => product.ProductName)</td>
-                    <td>@Html.DisplayFor(modelItem => product.ProductPrice)</td>
+                    <td>@product.ProductPrice.ToString("N0") đ</td>
+                    <td>@product.Quantity</td>
                     <td>@Html.DisplayFor(modelItem => product.Category.CategoryName)</td>
                     <td>
                         @Html.ActionLink("Sửa", "Edit", new { id = product.ProductID }, new { @class = "btn btn-primary btn-sm" })
@@ -47,7 +49,7 @@
 
     <!-- Hiển thị phân trang -->
     <div class="pagination-container">
-        @Html.PagedListPager(Model.Products, page => Url.Action("Index", new { page, searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, sortOrder = Model.SortOrder }))
+        @Html.PagedListPager(Model.Products, page => Url.Action("Index", new { page, searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, sortOrder = Model.SortOrder, categoryId = Model.CategoryID }))
     </div>
 }
 else

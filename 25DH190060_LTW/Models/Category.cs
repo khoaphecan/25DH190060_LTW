@@ -11,7 +11,8 @@ namespace _25DH190060_LTW.Models
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel.DataAnnotations;
+
     public partial class Category
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
@@ -19,10 +20,15 @@ namespace _25DH190060_LTW.Models
         {
             this.Product = new HashSet<Product>();
         }
-    
+
+        [Display(Name = "Mã danh mục")]
         public int CategoryID { get; set; }
+
+        [Required(ErrorMessage = "Tên danh mục không được để trống")]
+        [StringLength(100, ErrorMessage = "Tên danh mục tối đa 100 ký tự")]
+        [Display(Name = "Tên danh mục")]
         public string CategoryName { get; set; }
-    
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Product> Product { get; set; }
     }

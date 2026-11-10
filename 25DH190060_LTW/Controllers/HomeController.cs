@@ -44,11 +44,11 @@ namespace _25DH190060_LTW.Controllers
         }
 
         // GET: Home/ProductList
-        public ActionResult ProductList(int? categoryId, string searchTerm, int? page)
+        public ActionResult ProductList(int? categoryId, string searchTerm, decimal? minPrice, decimal? maxPrice, string sortOrder, int? page)
         {
             var products = db.Products.Include(p => p.Category).Include(p => p.OrderDetail).AsQueryable();
 
-            if (categoryId.HasValue)
+            if (categoryId.HasValue && categoryId.Value > 0)
             {
                 products = products.Where(p => p.CategoryID == categoryId.Value);
                 ViewBag.CurrentCategory = db.Categories.Find(categoryId.Value)?.CategoryName;
@@ -58,15 +58,48 @@ namespace _25DH190060_LTW.Controllers
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 products = products.Where(p => p.ProductName.Contains(searchTerm) ||
-                                               p.ProductDecription.Contains(searchTerm));
+                                               p.ProductDecription.Contains(searchTerm) ||
+                                               p.Category.CategoryName.Contains(searchTerm));
                 ViewBag.SearchTerm = searchTerm;
             }
+
+            if (minPrice.HasValue)
+            {
+                products = products.Where(p => p.ProductPrice >= minPrice.Value);
+                ViewBag.MinPrice = minPrice.Value;
+            }
+
+            if (maxPrice.HasValue)
+            {
+                products = products.Where(p => p.ProductPrice <= maxPrice.Value);
+                ViewBag.MaxPrice = maxPrice.Value;
+            }
+
+            switch (sortOrder)
+            {
+                case "name_asc":
+                    products = products.OrderBy(p => p.ProductName);
+                    break;
+                case "name_desc":
+                    products = products.OrderByDescending(p => p.ProductName);
+                    break;
+                case "price_asc":
+                    products = products.OrderBy(p => p.ProductPrice);
+                    break;
+                case "price_desc":
+                    products = products.OrderByDescending(p => p.ProductPrice);
+                    break;
+                default:
+                    products = products.OrderBy(p => p.ProductID);
+                    break;
+            }
+            ViewBag.SortOrder = sortOrder;
 
             int pageNumber = page ?? 1;
             int pageSize = 6;
             ViewBag.Categories = db.Categories.ToList();
 
-            return View(products.OrderBy(p => p.ProductID).ToPagedList(pageNumber, pageSize));
+            return View(products.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Home/ProductDetail/5 hoặc ProductDetails/5

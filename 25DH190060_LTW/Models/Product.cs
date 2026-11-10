@@ -22,14 +22,38 @@ namespace _25DH190060_LTW.Models
         {
             this.OrderDetail = new HashSet<OrderDetail>();
             this.ProductImage = "~/Content/images/default_img.png";
+            this.Quantity = 0;
         }
 
+        [Display(Name = "Mã sản phẩm")]
         public int ProductID { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng chọn danh mục")]
+        [Display(Name = "Danh mục")]
         public int CategoryID { get; set; }
+
+        [Required(ErrorMessage = "Tên sản phẩm không được để trống")]
+        [StringLength(200, ErrorMessage = "Tên sản phẩm tối đa 200 ký tự")]
+        [Display(Name = "Tên sản phẩm")]
         public string ProductName { get; set; }
+
+        [Required(ErrorMessage = "Mô tả sản phẩm không được để trống")]
+        [Display(Name = "Mô tả")]
         public string ProductDecription { get; set; }
+
+        [Required(ErrorMessage = "Đơn giá không được để trống")]
+        [Range(0, 1000000000, ErrorMessage = "Đơn giá phải lớn hơn hoặc bằng 0")]
+        [Display(Name = "Đơn giá")]
+        [DisplayFormat(DataFormatString = "{0:N0} đ", ApplyFormatInEditMode = true)]
         public decimal ProductPrice { get; set; }
+
+        [Display(Name = "Hình ảnh")]
         public string ProductImage { get; set; }
+
+        [Required(ErrorMessage = "Số lượng tồn không được để trống")]
+        [Range(0, 1000000, ErrorMessage = "Số lượng tồn phải từ 0 trở lên")]
+        [Display(Name = "Số lượng tồn")]
+        public int Quantity { get; set; }
 
         [NotMapped]
         public string ProductDescription
@@ -48,6 +72,7 @@ namespace _25DH190060_LTW.Models
         // Thêm trường dữ liệu UploadImg kiểu HttpPostedFileBase để upload file ảnh
         // Dùng thuộc tính [NotMapped] để đánh dấu đây là trường dữ liệu không lưu vào DB
         [NotMapped]
+        [Display(Name = "Tải ảnh lên")]
         public HttpPostedFileBase UploadImg { get; set; }
 
         public virtual Category Category { get; set; }

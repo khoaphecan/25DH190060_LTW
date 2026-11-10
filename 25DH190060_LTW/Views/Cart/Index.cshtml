@@ -42,6 +42,12 @@
 </script>
 
 <h2>GIỎ HÀNG</h2>
+
+@if (TempData["StockError"] != null)
+{
+    <div class="alert alert-danger">@TempData["StockError"]</div>
+}
+
 <div class="shoppingcart">
     @if (Model == null || !Model.Items.Any())
     {

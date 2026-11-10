@@ -113,6 +113,7 @@ namespace _25DH190060_LTW.Controllers
         public ActionResult Logout()
         {
             Session.Clear();
+            Session.Abandon();
             FormsAuthentication.SignOut();
             return RedirectToAction("Index", "Home");
         }

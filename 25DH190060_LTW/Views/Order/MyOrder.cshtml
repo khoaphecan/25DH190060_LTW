@@ -9,6 +9,15 @@
 <div class="container my-3">
     <h2>ĐƠN HÀNG CỦA TÔI</h2>
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
     <!-- Tabs Trạng thái đơn hàng -->
     <ul class="nav nav-tabs my-3">
         <li class="nav-item">
@@ -74,10 +83,10 @@
                 <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
                     <div>
                         <strong>Đơn hàng #@order.OrderID</strong>
-                        <span class="text-muted ms-3">Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy")</span>
+                        <span class="text-muted ms-3">Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
                     </div>
                     <div>
-                        <span class="badge bg-secondary">@order.PaymentStatus</span>
+                        <span class="badge @(order.PaymentStatus == "Đã hủy" ? "bg-danger" : "bg-secondary")">@order.PaymentStatus</span>
                     </div>
                 </div>
                 <table class="table table-bordered mb-2">
@@ -112,6 +121,14 @@
                         <a href="@Url.Action("OrderSuccess", "Order", new { id = order.OrderID })" class="btn btn-outline-primary btn-sm ms-3">
                             Xem chi tiết
                         </a>
+                        @if (order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
+                        {
+                            <a href="@Url.Action("CancelOrder", "Order", new { id = order.OrderID })"
+                               class="btn btn-outline-danger btn-sm ms-2"
+                               onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng #@order.OrderID không? Số lượng sản phẩm sẽ được hoàn lại vào kho.');">
+                                Hủy đơn
+                            </a>
+                        }
                     </div>
                 </div>
             </div>

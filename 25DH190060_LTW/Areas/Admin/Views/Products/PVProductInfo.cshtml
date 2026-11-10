@@ -24,7 +24,10 @@
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductDecription)</dd>
 
                 <dt class="col-sm-3 font-weight-bold">Đơn giá</dt>
-                <dd class="col-sm-9">@Html.DisplayFor(model => model.ProductPrice)</dd>
+                <dd class="col-sm-9">@Model.ProductPrice.ToString("N0") đ</dd>
+
+                <dt class="col-sm-3 font-weight-bold">Số lượng tồn</dt>
+                <dd class="col-sm-9">@Model.Quantity</dd>
 
                 <dt class="col-sm-3 font-weight-bold">Danh mục</dt>
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.Category.CategoryName)</dd>

@@ -9,28 +9,33 @@
 @using (Html.BeginForm("Index", "Products", FormMethod.Get))
 {
     <div class="form-group search-container">
+        @Html.DropDownList("categoryId", (SelectList)ViewBag.CategoryID, "Tất cả danh mục", new
+        {
+            @class = "form-control",
+            style = "max-width: 200px;"
+        })
+
         @Html.TextBoxFor(m => m.SearchTerm, new
         {
             @class = "form-control",
-            placeholder = "Nhập tên, mô tả hoặc chủng loại sản phẩm",
-            style = "max-width: 350px;"
+            placeholder = "Nhập tên, mô tả...",
+            style = "max-width: 300px;"
         })
 
-        @*bổ sung thêm trường tìm kiếm theo khoảng giá*@
         @Html.TextBoxFor(m => m.MinPrice, new
         {
             @class = "form-control",
-            placeholder = "Nhập giá tối thiểu",
+            placeholder = "Giá tối thiểu",
             type = "number",
-            style = "max-width: 180px;"
+            style = "max-width: 150px;"
         })
 
         @Html.TextBoxFor(m => m.MaxPrice, new
         {
             @class = "form-control",
-            placeholder = "Nhập giá tối đa",
+            placeholder = "Giá tối đa",
             type = "number",
-            style = "max-width: 180px;"
+            style = "max-width: 150px;"
         })
 
         <button type="submit" class="btn btn-primary">Tìm kiếm</button>
@@ -40,16 +45,16 @@
     <div class="form-group order-container">
         <span>Sắp xếp theo:</span>
         @Html.ActionLink("Tên tăng dần", "Index",
-            new { sortOrder = "name_asc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })
+            new { sortOrder = "name_asc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, categoryId = Model.CategoryID })
         |
         @Html.ActionLink("Tên giảm dần", "Index",
-            new { sortOrder = "name_desc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })
+            new { sortOrder = "name_desc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, categoryId = Model.CategoryID })
         |
         @Html.ActionLink("Giá tăng dần", "Index",
-            new { sortOrder = "price_asc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })
+            new { sortOrder = "price_asc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, categoryId = Model.CategoryID })
         |
         @Html.ActionLink("Giá giảm dần", "Index",
-            new { sortOrder = "price_desc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })
+            new { sortOrder = "price_desc", searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice, categoryId = Model.CategoryID })
     </div>
 }
 

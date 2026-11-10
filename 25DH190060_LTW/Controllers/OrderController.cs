@@ -45,6 +45,16 @@ namespace _25DH190060_LTW.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // Kiểm tra số lượng tồn kho trước khi hiển thị Checkout
+            foreach (var item in cart.Items)
+            {
+                var pro = db.Products.Find(item.ProductID);
+                if (pro != null && pro.Quantity < item.Quantity)
+                {
+                    ViewBag.StockWarning = $"Sản phẩm '{pro.ProductName}' chỉ còn {pro.Quantity} trong kho. Vui lòng điều chỉnh lại số lượng đặt.";
+                }
+            }
+
             // Tạo dữ liệu hiển thị cho CheckoutVM
             var model = new CheckoutVM
             {
@@ -86,6 +96,20 @@ namespace _25DH190060_LTW.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // 1. Kiểm tra số lượng tồn kho: Nếu số lượng đặt > SL tồn thì báo lỗi không cho đặt
+            foreach (var item in cart.Items)
+            {
+                var pro = db.Products.Find(item.ProductID);
+                if (pro == null)
+                {
+                    ModelState.AddModelError("", $"Sản phẩm mã #{item.ProductID} không tồn tại.");
+                }
+                else if (pro.Quantity < item.Quantity)
+                {
+                    ModelState.AddModelError("", $"Sản phẩm '{pro.ProductName}' hiện chỉ còn {pro.Quantity} sản phẩm trong kho (bạn đặt {item.Quantity} sản phẩm). Vui lòng cập nhật lại giỏ hàng.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 // Thiết lập PaymentStatus dựa trên PaymentMethod
@@ -120,9 +144,16 @@ namespace _25DH190060_LTW.Controllers
                 db.Orders.Add(order);
                 db.SaveChanges();
 
-                // Tạo các chi tiết đơn hàng (OrderDetail)
+                // Tạo các chi tiết đơn hàng (OrderDetail) và TRỪ SỐ LƯỢNG TỒN KHO
                 foreach (var item in cart.Items)
                 {
+                    var pro = db.Products.Find(item.ProductID);
+                    if (pro != null)
+                    {
+                        pro.Quantity -= item.Quantity;
+                        if (pro.Quantity < 0) pro.Quantity = 0;
+                    }
+
                     var detail = new OrderDetail
                     {
                         OrderID = order.OrderID,
@@ -142,7 +173,7 @@ namespace _25DH190060_LTW.Controllers
                 return RedirectToAction("OrderSuccess", new { id = order.OrderID });
             }
 
-            // Nếu model không hợp lệ, nạp lại CartItems để hiển thị lại
+            // Nếu model không hợp lệ (hết hàng hoặc lỗi validate), nạp lại dữ liệu để hiển thị
             model.CartItems = cart.Items.ToList();
             model.TotalAmount = cart.TotalValue();
             return View(model);
@@ -211,6 +242,46 @@ namespace _25DH190060_LTW.Controllers
             ViewBag.CurrentStatus = status ?? "Tất cả";
             var result = orders.OrderByDescending(o => o.OrderID).ToList();
             return View("MyOrder", result);
+        }
+
+        // GET / POST: Order/CancelOrder/5 - Hủy đơn hàng và HOÀN LẠI SỐ LƯỢNG TỒN KHO
+        [Authorize]
+        public ActionResult CancelOrder(int id)
+        {
+            string username = User.Identity.Name;
+            var customer = db.Customers.SingleOrDefault(c => c.Username == username);
+            if (customer == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var order = db.Orders.Include(o => o.OrderDetail).SingleOrDefault(o => o.OrderID == id && o.CustomerID == customer.CustomerID);
+            if (order == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
+            {
+                // Hoàn lại số lượng tồn kho vào bảng Product
+                foreach (var detail in order.OrderDetail)
+                {
+                    var pro = db.Products.Find(detail.ProductID);
+                    if (pro != null)
+                    {
+                        pro.Quantity += detail.Quantity;
+                    }
+                }
+                order.PaymentStatus = "Đã hủy";
+                db.SaveChanges();
+                TempData["SuccessMessage"] = $"Đã hủy đơn hàng #{order.OrderID} thành công và hoàn trả số lượng vào kho.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Đơn hàng này đã được hủy trước đó.";
+            }
+
+            return RedirectToAction("MyOrder");
         }
 
         protected override void Dispose(bool disposing)

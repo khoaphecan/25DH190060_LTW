@@ -21,6 +21,7 @@
                 <p class="pro-sale">Đã bán:&nbsp; @(Model.product.OrderDetail != null ? Model.product.OrderDetail.Count() : 0)</p>
                 <p class="pro-price">@Model.product.ProductPrice.ToString("N0") đ</p>
                 <p>Danh mục:&nbsp; @(Model.product.Category != null ? Model.product.Category.CategoryName : "")</p>
+                <p>Tồn kho:&nbsp; <strong>@Model.product.Quantity</strong></p>
                 <hr />
                 <h5><strong>Mô tả</strong></h5>
                 <p>@Model.product.ProductDecription</p>
@@ -40,15 +41,22 @@
                     @Html.Hidden("id", Model.product.ProductID)
                     <h4><strong>Số lượng</strong></h4>
                     <p>
-                        @Html.TextBoxFor(model => model.quantity, new { @class = "form-control", @type = "number", @min = 1, onchange = "this.form.submit()" })
+                        @Html.TextBoxFor(model => model.quantity, new { @class = "form-control", @type = "number", @min = 1, @max = (Model.product.Quantity > 0 ? Model.product.Quantity : 1), onchange = "this.form.submit()" })
                     </p>
                     <h4><strong>Tạm tính</strong></h4>
                     <p class="pro-price">@Model.estimatedValue.ToString("N0") đ</p>
-                    <p>
-                        @Html.ActionLink("Thêm vào giỏ hàng", "AddToCart", "Cart",
-                            new { id = Model.product.ProductID, quantity = Model.quantity },
-                            new { @class = "btn btn-info text-white" })
-                    </p>
+                    if (Model.product.Quantity > 0)
+                    {
+                        <p>
+                            @Html.ActionLink("Thêm vào giỏ hàng", "AddToCart", "Cart",
+                                new { id = Model.product.ProductID, quantity = Model.quantity },
+                                new { @class = "btn btn-info text-white" })
+                        </p>
+                    }
+                    else
+                    {
+                        <p><button type="button" class="btn btn-secondary" disabled>Hết hàng</button></p>
+                    }
                 }
                 <hr />
             </div>

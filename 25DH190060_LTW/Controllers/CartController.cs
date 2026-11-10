@@ -40,13 +40,22 @@ namespace _25DH190060_LTW.Controllers
             return View(cart);
         }
 
-        // Thêm sản phẩm vào giỏ
+        // Thêm sản phẩm vào giỏ (có kiểm tra tồn kho)
         public ActionResult AddToCart(int id, int quantity = 1)
         {
             var product = db.Products.Include("Category").FirstOrDefault(p => p.ProductID == id);
             if (product != null)
             {
                 var cartService = GetCartService();
+                var currentItem = cartService.GetCart().Items.FirstOrDefault(i => i.ProductID == id);
+                int currentQty = currentItem != null ? currentItem.Quantity : 0;
+
+                if (currentQty + quantity > product.Quantity)
+                {
+                    TempData["StockError"] = $"Sản phẩm '{product.ProductName}' hiện chỉ còn {product.Quantity} trong kho!";
+                    return RedirectToAction("Index");
+                }
+
                 string categoryName = product.Category != null ? product.Category.CategoryName : "Khác";
                 cartService.GetCart().AddItem(product.ProductID, product.ProductImage, product.ProductName, product.ProductPrice, quantity, categoryName);
             }
@@ -68,10 +77,17 @@ namespace _25DH190060_LTW.Controllers
             return RedirectToAction("Index");
         }
 
-        // Cập nhật số lượng sản phẩm trong giỏ hàng
+        // Cập nhật số lượng sản phẩm trong giỏ hàng (có kiểm tra tồn kho)
         [HttpPost]
         public ActionResult UpdateQuantity(int id, int quantity)
         {
+            var product = db.Products.Find(id);
+            if (product != null && quantity > product.Quantity)
+            {
+                TempData["StockError"] = $"Sản phẩm '{product.ProductName}' hiện chỉ còn {product.Quantity} trong kho!";
+                return RedirectToAction("Index");
+            }
+
             var cartService = GetCartService();
             cartService.GetCart().UpdateQuantity(id, quantity);
             return RedirectToAction("Index");

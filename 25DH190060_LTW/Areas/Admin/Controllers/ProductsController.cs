@@ -18,10 +18,17 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         private MyStoreEntities db = new MyStoreEntities();
 
         // GET: Admin/Products
-        public ActionResult Index(string searchTerm, decimal? minPrice, decimal? maxPrice, string sortOrder, int? page)
+        public ActionResult Index(string searchTerm, decimal? minPrice, decimal? maxPrice, string sortOrder, int? categoryId, int? page)
         {
             var model = new ProductSearchVM();
             var products = db.Product.Include(p => p.Category).AsQueryable();
+
+            // Lọc theo danh mục
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                model.CategoryID = categoryId.Value;
+                products = products.Where(p => p.CategoryID == categoryId.Value);
+            }
 
             // Tìm kiếm sản phẩm dựa trên từ khóa
             if (!string.IsNullOrEmpty(searchTerm))
@@ -70,13 +77,15 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             model.SortOrder = sortOrder;
 
             // Đoạn code liên quan tới phân trang
-            // Lấy số trang hiện tại (mặc định là trang 1 nếu không có giá trị)
             int pageNumber = page ?? 1;
-            int pageSize = 10; // Số sản phẩm mỗi trang (có thể đổi thành 4 hoặc 10)
+            int pageSize = 10; // Số sản phẩm mỗi trang
             model.PageNumber = pageNumber;
             model.PageSize = pageSize;
 
             model.Products = products.ToPagedList(pageNumber, pageSize);
+
+            ViewBag.Categories = db.Category.ToList();
+            ViewBag.CategoryID = new SelectList(db.Category, "CategoryID", "CategoryName", categoryId);
 
             return View(model);
         }
@@ -106,7 +115,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // POST: Admin/Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ProductID,CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage,UploadImg")] Product product)
+        public ActionResult Create([Bind(Include = "ProductID,CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage,UploadImg,Quantity")] Product product)
         {
             if (ModelState.IsValid)
             {
@@ -157,7 +166,7 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // POST: Admin/Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ProductID,CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage,UploadImg")] Product product)
+        public ActionResult Edit([Bind(Include = "ProductID,CategoryID,ProductName,ProductDecription,ProductPrice,ProductImage,UploadImg,Quantity")] Product product)
         {
             if (ModelState.IsValid)
             {
