@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -130,6 +130,10 @@ namespace _25DH190060_LTW.Controllers
                         break;
                 }
 
+                string deliveryAddress = !string.IsNullOrWhiteSpace(model.ShippingAddress)
+                    ? model.ShippingAddress.Trim()
+                    : (!string.IsNullOrWhiteSpace(customer.CustomerAddress) ? customer.CustomerAddress.Trim() : "Chưa cập nhật địa chỉ");
+
                 // Tạo đối tượng Order và lưu vào DB
                 var order = new Order
                 {
@@ -137,9 +141,9 @@ namespace _25DH190060_LTW.Controllers
                     OrderDate = DateTime.Now,
                     TotalAmount = cart.TotalValue(),
                     PaymentStatus = paymentStatus,
-                    PaymentMethod = model.PaymentMethod,
-                    DeliveryMethod = model.ShippingMethod,
-                    AddressDelivery = !string.IsNullOrEmpty(model.ShippingAddress) ? model.ShippingAddress : customer.CustomerAddress
+                    PaymentMethod = !string.IsNullOrWhiteSpace(model.PaymentMethod) ? model.PaymentMethod : "Tiền mặt",
+                    DeliveryMethod = !string.IsNullOrWhiteSpace(model.ShippingMethod) ? model.ShippingMethod : "Giao hàng nhanh",
+                    AddressDelivery = deliveryAddress
                 };
                 db.Orders.Add(order);
                 db.SaveChanges();
@@ -159,8 +163,7 @@ namespace _25DH190060_LTW.Controllers
                         OrderID = order.OrderID,
                         ProductID = item.ProductID,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        TotalPrice = item.TotalPrice
+                        UnitPrice = item.UnitPrice
                     };
                     db.OrderDetails.Add(detail);
                 }
