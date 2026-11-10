@@ -7,7 +7,14 @@
 
 <h2 class="bg-success">XÓA DANH MỤC</h2>
 
-<h4 class="alert alert-danger">Bạn thực sự muốn xóa sản phẩm này à?</h4>
+<h4 class="alert alert-danger">Bạn thực sự muốn xóa danh mục này à?</h4>
+
+@if (Model.Product != null && Model.Product.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Lưu ý:</strong> Danh mục này hiện đang có <strong>@Model.Product.Count()</strong> sản phẩm trực thuộc. Để bảo toàn tính toàn vẹn dữ liệu, hệ thống sẽ không cho phép xóa danh mục này.
+    </div>
+}
 
 @using (Html.BeginForm()) {
     @Html.AntiForgeryToken()

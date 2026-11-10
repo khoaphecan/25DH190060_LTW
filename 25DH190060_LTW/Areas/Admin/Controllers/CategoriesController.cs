@@ -83,7 +83,16 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // GET: Admin/Categories/Delete/5
         public ActionResult Delete(int? id)
         {
-            return Details(id);
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Category category = db.Category.Include(c => c.Product).FirstOrDefault(c => c.CategoryID == id);
+            if (category == null)
+            {
+                return HttpNotFound();
+            }
+            return View(category);
         }
 
         // POST: Admin/Categories/Delete/5
@@ -91,9 +100,30 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Category category = db.Category.Find(id);
-            db.Category.Remove(category);
-            db.SaveChanges();
+            Category category = db.Category.Include(c => c.Product).FirstOrDefault(c => c.CategoryID == id);
+            if (category == null)
+            {
+                return HttpNotFound();
+            }
+
+            // Kiểm tra xem danh mục có sản phẩm không
+            if (category.Product != null && category.Product.Any())
+            {
+                TempData["ErrorMessage"] = "Không thể xóa danh mục này vì đang có sản phẩm thuộc danh mục!";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                db.Category.Remove(category);
+                db.SaveChanges();
+                TempData["SuccessMessage"] = "Xóa danh mục thành công!";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Không thể xóa danh mục này do ràng buộc dữ liệu!";
+            }
+
             return RedirectToAction("Index");
         }
 
