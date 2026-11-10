@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -87,7 +87,10 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order order = db.Order.Find(id);
+            Order order = db.Order
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetail.Select(d => d.Product))
+                .FirstOrDefault(o => o.OrderID == id);
             if (order == null)
             {
                 return HttpNotFound();
