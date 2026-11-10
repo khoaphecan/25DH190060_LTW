@@ -19,43 +19,26 @@ namespace _25DH190060_LTW.Controllers
         public ActionResult Index(string searchTerm, int? page)
         {
             var model = new HomeProductVM();
-            try
+            var products = db.Products.Include(p => p.Category).Include(p => p.OrderDetail).AsQueryable();
+
+            // Tìm kiếm sản phẩm dựa trên từ khóa
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                var products = db.Products.Include(p => p.Category).Include(p => p.OrderDetail).AsQueryable();
-
-                // Tìm kiếm sản phẩm dựa trên từ khóa
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    model.SearchTerm = searchTerm;
-                    products = products.Where(p => p.ProductName.Contains(searchTerm) ||
-                                                   p.ProductDecription.Contains(searchTerm) ||
-                                                   (p.Category != null && p.Category.CategoryName.Contains(searchTerm)));
-                }
-
-                // code liên quan tới phân trang
-                int pageNumber = page ?? 1;
-                int pageSize = 6;
-
-                if (products != null && products.Any())
-                {
-                    // lấy top 10 sản phẩm bán chạy nhất (nổi bật)
-                    model.FeaturedProducts = products.OrderByDescending(p => p.OrderDetail != null ? p.OrderDetail.Count() : 0).Take(10).ToList();
-
-                    // lấy 20 sản phẩm bán ế nhất (mới) và phân trang 6 sp/trang
-                    model.NewProducts = products.OrderBy(p => p.OrderDetail != null ? p.OrderDetail.Count() : 0).Take(20).ToPagedList(pageNumber, pageSize);
-                }
-                else
-                {
-                    model.FeaturedProducts = new List<Product>();
-                    model.NewProducts = new List<Product>().ToPagedList(1, pageSize);
-                }
+                model.SearchTerm = searchTerm;
+                products = products.Where(p => p.ProductName.Contains(searchTerm) ||
+                                               p.ProductDecription.Contains(searchTerm) ||
+                                               p.Category.CategoryName.Contains(searchTerm));
             }
-            catch (Exception)
-            {
-                // Fallback an toàn khi CSDL chưa có dữ liệu hoặc gặp lỗi truy vấn
-                model.FeaturedProducts = new List<Product>();
-                model.NewProducts = new List<Product>().ToPagedList(1, 6);
-            }
+
+            // code liên quan tới phân trang
+            int pageNumber = page ?? 1;
+            int pageSize = 6;
+
+            // lấy top 10 sản phẩm bán chạy nhất (nổi bật)
+            model.FeaturedProducts = products.OrderByDescending(p => p.OrderDetail.Count()).Take(10).ToList();
+
+            // lấy 20 sản phẩm bán ế nhất (mới) và phân trang 6 sp/trang
+            model.NewProducts = products.OrderBy(p => p.OrderDetail.Count()).Take(20).ToPagedList(pageNumber, pageSize);
 
             return View(model);
         }
