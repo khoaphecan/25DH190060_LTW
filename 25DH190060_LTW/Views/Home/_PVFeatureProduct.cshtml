@@ -12,14 +12,14 @@
             {
                 <div class="fproduct-item">
                     <div>
-                        <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductID })">
+                        <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
                             <img src="@Url.Content(!string.IsNullOrEmpty(product.ProductImage) ? product.ProductImage : "~/Content/images/default_img.png")" alt="@product.ProductName" />
                         </a>
                     </div>
                     <div>
                         <p class="prodPrice">@product.ProductPrice.ToString("N0") đ</p>
                         <p class="prodName">
-                            <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductID })">
+                            <a href="@Url.Action("ProductDetails", "Home", new { id = product.ProductID })">
                                 @product.ProductName
                             </a>
                         </p>

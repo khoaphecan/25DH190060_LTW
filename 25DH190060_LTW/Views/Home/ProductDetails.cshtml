@@ -36,7 +36,7 @@
         @* Khối bên phải: Phần tạm tính & Sản phẩm bán chạy *@
         <div class="col-md-3 pro-section">
             <div class="form-group">
-                @using (Html.BeginForm("ProductDetails", "Home", FormMethod.Get))
+                @using (Html.BeginForm("ProductDetails", "Home", new { id = Model.product.ProductID }, FormMethod.Get))
                 {
                     @Html.Hidden("id", Model.product.ProductID)
                     <h4><strong>Số lượng</strong></h4>

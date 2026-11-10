@@ -105,6 +105,10 @@ namespace _25DH190060_LTW.Controllers
         // GET: Home/ProductDetail/5 hoặc ProductDetails/5
         public ActionResult ProductDetail(int? id, int? quantity, int? page)
         {
+            if (id == null)
+            {
+                return RedirectToAction("Index");
+            }
             return ProductDetails(id, quantity, page);
         }
 
@@ -112,13 +116,13 @@ namespace _25DH190060_LTW.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return RedirectToAction("Index");
             }
 
             Product pro = db.Products.Find(id);
             if (pro == null)
             {
-                return HttpNotFound();
+                return RedirectToAction("Index");
             }
 
             // lấy tất cả các sản phẩm cùng danh mục
@@ -134,7 +138,7 @@ namespace _25DH190060_LTW.Controllers
             model.RelatedProducts = products.OrderBy(p => p.ProductID).Take(8).ToList();
             model.TopProducts = products.OrderByDescending(p => p.OrderDetail.Count()).Take(8).ToPagedList(pageNumber, pageSize);
 
-            if (quantity.HasValue)
+            if (quantity.HasValue && quantity.Value > 0)
             {
                 model.quantity = quantity.Value;
             }
