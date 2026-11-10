@@ -39,7 +39,9 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         // GET: Admin/Customers/Create
         public ActionResult Create()
         {
-            ViewBag.Username = new SelectList(db.User, "Username", "Username");
+            var usedUsernames = db.Customer.Select(c => c.Username).ToList();
+            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username)).ToList();
+            ViewBag.Username = new SelectList(availableUsers, "Username", "Username");
             return View();
         }
 
@@ -48,14 +50,37 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "CustomerID,CustomerName,CustomerPhone,CustomerEmail,CustomerAddress,Username")] Customer customer)
         {
-            if (ModelState.IsValid)
+            if (string.IsNullOrEmpty(customer.Username))
             {
-                db.Customer.Add(customer);
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                ModelState.AddModelError("Username", "Vui lòng chọn tài khoản liên kết.");
+            }
+            else if (!db.User.Any(u => u.Username == customer.Username))
+            {
+                ModelState.AddModelError("Username", "Tài khoản này không tồn tại trong hệ thống.");
+            }
+            else if (db.Customer.Any(c => c.Username == customer.Username))
+            {
+                ModelState.AddModelError("Username", "Tài khoản này đã được gán cho một khách hàng khác.");
             }
 
-            ViewBag.Username = new SelectList(db.User, "Username", "Username", customer.Username);
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    db.Customer.Add(customer);
+                    db.SaveChanges();
+                    TempData["SuccessMessage"] = "Thêm khách hàng mới thành công!";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Lỗi khi lưu dữ liệu: " + (ex.InnerException != null ? ex.InnerException.Message : ex.Message));
+                }
+            }
+
+            var usedUsernames = db.Customer.Select(c => c.Username).ToList();
+            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username) || u.Username == customer.Username).ToList();
+            ViewBag.Username = new SelectList(availableUsers, "Username", "Username", customer.Username);
             return View(customer);
         }
 
@@ -71,7 +96,9 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return HttpNotFound();
             }
-            ViewBag.Username = new SelectList(db.User, "Username", "Username", customer.Username);
+            var usedUsernames = db.Customer.Where(c => c.CustomerID != customer.CustomerID).Select(c => c.Username).ToList();
+            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username) || u.Username == customer.Username).ToList();
+            ViewBag.Username = new SelectList(availableUsers, "Username", "Username", customer.Username);
             return View(customer);
         }
 
@@ -80,13 +107,37 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "CustomerID,CustomerName,CustomerPhone,CustomerEmail,CustomerAddress,Username")] Customer customer)
         {
+            if (string.IsNullOrEmpty(customer.Username))
+            {
+                ModelState.AddModelError("Username", "Vui lòng chọn tài khoản liên kết.");
+            }
+            else if (!db.User.Any(u => u.Username == customer.Username))
+            {
+                ModelState.AddModelError("Username", "Tài khoản này không tồn tại trong hệ thống.");
+            }
+            else if (db.Customer.Any(c => c.Username == customer.Username && c.CustomerID != customer.CustomerID))
+            {
+                ModelState.AddModelError("Username", "Tài khoản này đã được gán cho một khách hàng khác.");
+            }
+
             if (ModelState.IsValid)
             {
-                db.Entry(customer).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                try
+                {
+                    db.Entry(customer).State = EntityState.Modified;
+                    db.SaveChanges();
+                    TempData["SuccessMessage"] = "Cập nhật thông tin khách hàng thành công!";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Lỗi khi lưu dữ liệu: " + (ex.InnerException != null ? ex.InnerException.Message : ex.Message));
+                }
             }
-            ViewBag.Username = new SelectList(db.User, "Username", "Username", customer.Username);
+
+            var usedUsernames = db.Customer.Where(c => c.CustomerID != customer.CustomerID).Select(c => c.Username).ToList();
+            var availableUsers = db.User.Where(u => !usedUsernames.Contains(u.Username) || u.Username == customer.Username).ToList();
+            ViewBag.Username = new SelectList(availableUsers, "Username", "Username", customer.Username);
             return View(customer);
         }
 
