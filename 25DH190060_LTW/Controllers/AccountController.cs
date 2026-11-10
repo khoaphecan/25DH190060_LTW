@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -155,6 +155,11 @@ namespace _25DH190060_LTW.Controllers
         public ActionResult UpdateProfile(ProfileInfoVM model)
         {
             string username = User.Identity.Name;
+            if (string.IsNullOrEmpty(username) && Session["Username"] != null)
+            {
+                username = Session["Username"].ToString();
+            }
+
             var customer = db.Customers.SingleOrDefault(c => c.Username == username);
             if (customer != null)
             {
@@ -162,9 +167,30 @@ namespace _25DH190060_LTW.Controllers
                 customer.CustomerPhone = model.CustomerPhone;
                 customer.CustomerEmail = model.CustomerEmail;
                 customer.CustomerAddress = model.CustomerAddress;
+            }
+            else
+            {
+                customer = new Customer
+                {
+                    Username = username,
+                    CustomerName = model.CustomerName,
+                    CustomerPhone = model.CustomerPhone,
+                    CustomerEmail = model.CustomerEmail,
+                    CustomerAddress = model.CustomerAddress
+                };
+                db.Customers.Add(customer);
+            }
+
+            try
+            {
                 db.SaveChanges();
                 TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
             }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi lưu thông tin: " + (ex.InnerException != null ? ex.InnerException.Message : ex.Message);
+            }
+
             return RedirectToAction("ProfileInfo");
         }
 
