@@ -31,7 +31,7 @@ namespace _25DH190060_LTW.Controllers
             }
 
             // Xác thực người dùng đã đăng nhập chưa
-            string username = User.Identity.Name;
+            string username = User.Identity.IsAuthenticated ? User.Identity.Name : (Session["Username"] != null ? Session["Username"].ToString() : "");
             var user = db.Users.SingleOrDefault(u => u.Username == username);
             if (user == null)
             {
@@ -83,7 +83,7 @@ namespace _25DH190060_LTW.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            string username = User.Identity.Name;
+            string username = User.Identity.IsAuthenticated ? User.Identity.Name : (Session["Username"] != null ? Session["Username"].ToString() : "");
             var user = db.Users.SingleOrDefault(u => u.Username == username);
             if (user == null)
             {
@@ -112,21 +112,27 @@ namespace _25DH190060_LTW.Controllers
 
             if (ModelState.IsValid)
             {
-                // Thiết lập PaymentStatus dựa trên PaymentMethod
+                // Thiết lập PaymentStatus và OrderStatus dựa trên PaymentMethod
                 string paymentStatus = "Chưa thanh toán";
+                string orderStatus = "Đang xử lý";
+
                 switch (model.PaymentMethod)
                 {
                     case "Tiền mặt":
                         paymentStatus = "Thanh toán tiền mặt";
+                        orderStatus = "Đang xử lý";
                         break;
                     case "Paypal":
                         paymentStatus = "Thanh toán paypal";
+                        orderStatus = "Đang xử lý";
                         break;
                     case "Mua trước trả sau":
                         paymentStatus = "Trả góp";
+                        orderStatus = "Đang xử lý";
                         break;
                     default:
                         paymentStatus = "Chưa thanh toán";
+                        orderStatus = "Chờ thanh toán";
                         break;
                 }
 
@@ -141,6 +147,7 @@ namespace _25DH190060_LTW.Controllers
                     OrderDate = DateTime.Now,
                     TotalAmount = cart.TotalValue(),
                     PaymentStatus = paymentStatus,
+                    OrderStatus = orderStatus,
                     PaymentMethod = !string.IsNullOrWhiteSpace(model.PaymentMethod) ? model.PaymentMethod : "Tiền mặt",
                     DeliveryMethod = !string.IsNullOrWhiteSpace(model.ShippingMethod) ? model.ShippingMethod : "Giao hàng nhanh",
                     AddressDelivery = deliveryAddress
@@ -163,7 +170,8 @@ namespace _25DH190060_LTW.Controllers
                         OrderID = order.OrderID,
                         ProductID = item.ProductID,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice
+                        UnitPrice = item.UnitPrice,
+                        TotalPrice = item.Quantity * item.UnitPrice
                     };
                     db.OrderDetails.Add(detail);
                 }
@@ -198,60 +206,180 @@ namespace _25DH190060_LTW.Controllers
             return View(order);
         }
 
-        // GET: Order/MyOrder hoặc OrderHistory
+        // GET: Order/MyOrder
         [Authorize]
-        public ActionResult MyOrder(string search, string status)
+        public ActionResult MyOrder(string searchTerm, string status, string expandStatus)
         {
-            return OrderHistory(search, status);
+            string username = User.Identity.IsAuthenticated ? User.Identity.Name : (Session["Username"] != null ? Session["Username"].ToString() : "");
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = db.Users.SingleOrDefault(u => u.Username == username);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var customer = db.Customers.SingleOrDefault(c => c.Username == user.Username);
+            if (customer == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Lấy toàn bộ danh sách đơn hàng của khách hàng hiện tại
+            var allUserOrders = db.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetail.Select(d => d.Product.Category))
+                .Where(o => o.CustomerID == customer.CustomerID)
+                .OrderByDescending(o => o.OrderDate)
+                .ThenByDescending(o => o.OrderID)
+                .ToList();
+
+            int totalUserOrders = allUserOrders.Count;
+            string activeStatus = string.IsNullOrWhiteSpace(status) ? "Tất cả đơn" : status.Trim();
+
+            var vm = new MyOrderVM
+            {
+                SearchTerm = searchTerm,
+                ActiveStatus = activeStatus,
+                ExpandedStatus = expandStatus,
+                TotalUserOrders = totalUserOrders
+            };
+
+            // Trường hợp khách hàng chưa từng đặt đơn nào trong hệ thống
+            if (totalUserOrders == 0)
+            {
+                return View(vm);
+            }
+
+            // Lọc theo từ khóa tìm kiếm (Mã đơn hàng hoặc Tên sản phẩm)
+            var filteredOrders = allUserOrders.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                string term = searchTerm.Trim().ToLower();
+                filteredOrders = filteredOrders.Where(o =>
+                    o.OrderID.ToString().Contains(term) ||
+                    (o.OrderDetail != null && o.OrderDetail.Any(od => od.Product != null && od.Product.ProductName.ToLower().Contains(term)))
+                );
+            }
+
+            var standardStatuses = new List<string> { "Chờ thanh toán", "Đang xử lý", "Đang vận chuyển", "Đã giao", "Đã hủy" };
+
+            if (activeStatus == "Tất cả đơn" || activeStatus == "Tất cả")
+            {
+                // Tab Tất cả đơn: Gom nhóm theo từng trạng thái đơn hàng
+                foreach (var st in standardStatuses)
+                {
+                    var ordersInSt = filteredOrders.Where(o => o.OrderStatusDisplay == st).ToList();
+                    if (ordersInSt.Any())
+                    {
+                        bool isExpanded = (!string.IsNullOrEmpty(expandStatus) && expandStatus == st);
+                        int takeCount = isExpanded ? 50 : 2;
+
+                        vm.OrderGroups.Add(new OrderGroupItemVM
+                        {
+                            StatusName = st,
+                            TotalCount = ordersInSt.Count,
+                            IsExpanded = isExpanded,
+                            Orders = ordersInSt.Take(takeCount).ToList()
+                        });
+                    }
+                }
+
+                // Nếu có đơn mang trạng thái khác ngoài danh sách chuẩn
+                var otherOrders = filteredOrders.Where(o => !standardStatuses.Contains(o.OrderStatusDisplay)).ToList();
+                foreach (var grp in otherOrders.GroupBy(o => o.OrderStatusDisplay))
+                {
+                    bool isExpanded = (!string.IsNullOrEmpty(expandStatus) && expandStatus == grp.Key);
+                    int takeCount = isExpanded ? 50 : 2;
+
+                    vm.OrderGroups.Add(new OrderGroupItemVM
+                    {
+                        StatusName = grp.Key,
+                        TotalCount = grp.Count(),
+                        IsExpanded = isExpanded,
+                        Orders = grp.Take(takeCount).ToList()
+                    });
+                }
+            }
+            else
+            {
+                // Từng tab trạng thái riêng lẻ: Chỉ lọc đúng trạng thái đó
+                var ordersInSt = filteredOrders.Where(o => o.OrderStatusDisplay == activeStatus).ToList();
+                bool isExpanded = (!string.IsNullOrEmpty(expandStatus) && expandStatus == activeStatus);
+                int takeCount = isExpanded ? 50 : 2;
+
+                vm.OrderGroups.Add(new OrderGroupItemVM
+                {
+                    StatusName = activeStatus,
+                    TotalCount = ordersInSt.Count,
+                    IsExpanded = isExpanded,
+                    Orders = ordersInSt.Take(takeCount).ToList()
+                });
+            }
+
+            return View(vm);
         }
 
+        // Hỗ trợ route OrderHistory tương thích với các link cũ
         [Authorize]
         public ActionResult OrderHistory(string search, string status)
         {
-            string username = User.Identity.Name;
+            return RedirectToAction("MyOrder", new { searchTerm = search, status = status });
+        }
+
+        // Action Mua lại: Thêm các sản phẩm trong đơn hàng vào giỏ với số lượng = 1
+        [Authorize]
+        public ActionResult BuyAgain(int orderId)
+        {
+            string username = User.Identity.IsAuthenticated ? User.Identity.Name : (Session["Username"] != null ? Session["Username"].ToString() : "");
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             var customer = db.Customers.SingleOrDefault(c => c.Username == username);
             if (customer == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var orders = db.Orders
-                .Include(o => o.OrderDetail.Select(d => d.Product))
-                .Where(o => o.CustomerID == customer.CustomerID)
-                .AsQueryable();
-
-            // Lọc theo trạng thái
-            if (!string.IsNullOrEmpty(status) && status != "Tất cả")
+            var order = db.Orders.Include(o => o.OrderDetail.Select(od => od.Product))
+                                 .SingleOrDefault(o => o.OrderID == orderId && o.CustomerID == customer.CustomerID);
+            if (order == null)
             {
-                orders = orders.Where(o => o.PaymentStatus.Contains(status));
+                return HttpNotFound();
             }
 
-            // Tìm kiếm theo Mã đơn hàng hoặc Tên sản phẩm
-            if (!string.IsNullOrEmpty(search))
+            var cartService = new CartService(Session);
+            var cart = cartService.GetCart();
+
+            foreach (var d in order.OrderDetail)
             {
-                int orderId;
-                if (int.TryParse(search, out orderId))
+                var pro = d.Product ?? db.Products.Find(d.ProductID);
+                if (pro != null)
                 {
-                    orders = orders.Where(o => o.OrderID == orderId ||
-                                               o.OrderDetail.Any(d => d.Product.ProductName.Contains(search)));
+                    string catName = (pro.Category != null) ? pro.Category.CategoryName : "Khác";
+                    cart.AddItem(pro.ProductID, pro.ProductImage, pro.ProductName, pro.ProductPrice, 1, catName);
                 }
-                else
-                {
-                    orders = orders.Where(o => o.OrderDetail.Any(d => d.Product.ProductName.Contains(search)));
-                }
-                ViewBag.CurrentSearch = search;
             }
 
-            ViewBag.CurrentStatus = status ?? "Tất cả";
-            var result = orders.OrderByDescending(o => o.OrderID).ToList();
-            return View("MyOrder", result);
+            TempData["SuccessMessage"] = $"Đã thêm các sản phẩm từ đơn hàng #{orderId} vào giỏ hàng.";
+            return RedirectToAction("Index", "Cart");
         }
 
         // GET / POST: Order/CancelOrder/5 - Hủy đơn hàng và HOÀN LẠI SỐ LƯỢNG TỒN KHO
         [Authorize]
         public ActionResult CancelOrder(int id)
         {
-            string username = User.Identity.Name;
+            string username = User.Identity.IsAuthenticated ? User.Identity.Name : (Session["Username"] != null ? Session["Username"].ToString() : "");
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             var customer = db.Customers.SingleOrDefault(c => c.Username == username);
             if (customer == null)
             {
@@ -264,7 +392,7 @@ namespace _25DH190060_LTW.Controllers
                 return HttpNotFound();
             }
 
-            if (order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
+            if (order.PaymentStatus != "Đã hủy" && order.OrderStatus != "Đã hủy")
             {
                 // Hoàn lại số lượng tồn kho vào bảng Product
                 foreach (var detail in order.OrderDetail)
@@ -276,6 +404,7 @@ namespace _25DH190060_LTW.Controllers
                     }
                 }
                 order.PaymentStatus = "Đã hủy";
+                order.OrderStatus = "Đã hủy";
                 db.SaveChanges();
                 TempData["SuccessMessage"] = $"Đã hủy đơn hàng #{order.OrderID} thành công và hoàn trả số lượng vào kho.";
             }

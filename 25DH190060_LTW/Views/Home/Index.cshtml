@@ -1,7 +1,7 @@
 ﻿@model _25DH190060_LTW.Models.ViewModel.HomeProductVM
 @{
     ViewBag.Title = "Customer Home Page";
-    <link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerHome.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/myStyle/CustomerHome.css?v=2" />
 }
 
 @* PHẦN BANNER *@
@@ -9,7 +9,7 @@
     <div class="banner-container">
         <h2>Chào mừng đến trang web E-commerce</h2>
         <p>Mua sắm trực tuyến với hàng ngàn sản phẩm đa dạng và chất lượng</p>
-        <a href="#" class="btnBanner">Bắt đầu mua sắm</a>
+        <a href="@Url.Action("ProductList", "Home")" class="btnBanner">Bắt đầu mua sắm</a>
     </div>
 </section>
 

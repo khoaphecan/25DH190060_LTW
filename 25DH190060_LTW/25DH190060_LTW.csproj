@@ -290,6 +290,8 @@
     <Compile Include="Models\ViewModel\CategoryStatsVM.cs" />
 
     <Compile Include="Models\ViewModel\ProductSearchVM.cs" />
+    <Compile Include="Models\ViewModel\OrderSearchVM.cs" />
+    <Compile Include="Models\ViewModel\MyOrderVM.cs" />
 
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Models\ViewModel\PersonalMenuVM.cs" />
@@ -514,6 +516,8 @@
     <Content Include="Areas\Admin\Views\Orders\Delete.cshtml" />
 
     <Content Include="Areas\Admin\Views\Orders\Details.cshtml" />
+    <Content Include="Areas\Admin\Views\Orders\DetailedOrder.cshtml" />
+    <Content Include="Areas\Admin\Views\Orders\UpdateStatus.cshtml" />
 
     <Content Include="Areas\Admin\Views\Orders\Index.cshtml" />
 

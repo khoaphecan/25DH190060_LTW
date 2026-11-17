@@ -1,39 +1,135 @@
-﻿@model IEnumerable<_25DH190060_LTW.Models.Order>
+﻿@model _25DH190060_LTW.Models.ViewModel.OrderSearchVM
+@using PagedList.Mvc;
 
 @{
-    ViewBag.Title = "Quản Lý Đơn Hàng";
+    ViewBag.Title = "Danh sách đơn hàng";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2 class="bg-success">DANH SÁCH ĐƠN HÀNG</h2>
+<style>
+    .search-box-row {
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+    .search-box-row label {
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #222222;
+        font-size: 14px;
+        display: block;
+    }
+    .table-order-list {
+        margin-top: 0;
+        border-top: none;
+        width: 100%;
+    }
+    .table-order-list thead tr {
+        background-color: #dff0d8;
+        color: #3c763d;
+    }
+    .table-order-list th {
+        padding: 10px 12px;
+        font-weight: bold;
+        border: 1px solid #d6e9c6 !important;
+        font-size: 14px;
+    }
+    .table-order-list tbody tr {
+        background-color: #eaf4fb;
+    }
+    .table-order-list td {
+        padding: 10px 12px;
+        border: 1px solid #d8e5ee !important;
+        font-size: 14px;
+        color: #333333;
+    }
+    .table-order-list td a {
+        color: #337ab7;
+        text-decoration: none;
+    }
+    .table-order-list td a:hover {
+        text-decoration: underline;
+    }
+</style>
 
-<table class="table table-bordered table-hover">
-    <thead class="table-success" style="background-color: #d8ebd2;">
-        <tr>
-            <th>MÃ ĐƠN</th>
-            <th>KHÁCH HÀNG</th>
-            <th>NGÀY ĐẶT</th>
-            <th>TỔNG TIỀN</th>
-            <th>TRẠNG THÁI</th>
-            <th>ĐỊA CHỈ GIAO</th>
-            <th style="width: 150px; text-align: center;"></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+<!-- Form Tìm Kiếm Đơn Hàng -->
+@using (Html.BeginForm("Index", "Orders", FormMethod.Get, new { @class = "search-box-row" }))
+{
+    <div class="row align-items-end">
+        <div class="col-md-3 col-sm-6 mb-2">
+            <label>Tên khách hàng</label>
+            <input type="text" name="customerName" class="form-control" value="@Model.CustomerName" placeholder="" />
+        </div>
+        <div class="col-md-3 col-sm-6 mb-2">
+            <label>Trạng thái thanh toán</label>
+            @Html.DropDownList("paymentStatus", Model.PaymentStatusList, new { @class = "form-control" })
+        </div>
+        <div class="col-md-3 col-sm-6 mb-2">
+            <label>Ngày đặt hàng</label>
+            <input type="date" name="orderDate" class="form-control" value="@(Model.OrderDate.HasValue ? Model.OrderDate.Value.ToString("yyyy-MM-dd") : "")" placeholder="mm/dd/yyyy" />
+        </div>
+        <div class="col-md-3 col-sm-6 mb-2">
+            <label class="d-none d-md-block" style="visibility: hidden;">Tìm kiếm</label>
+            <button type="submit" class="btn btn-primary" style="min-width: 110px;">Tìm kiếm</button>
+        </div>
+    </div>
+}
+
+<h2 class="bg-success" style="background-color: #dff0d8 !important; color: #3c763d !important; padding: 10px 15px; margin-top: 25px; margin-bottom: 0; font-size: 22px; font-weight: bold; border: 1px solid #d6e9c6; border-bottom: none;">
+    DANH SÁCH ĐƠN HÀNG
+</h2>
+
+@if (Model.Orders != null && Model.Orders.Any())
+{
+    <table class="table table-bordered table-order-list">
+        <thead>
             <tr>
-                <td>#@item.OrderID</td>
-                <td>@(item.Customer != null ? item.Customer.CustomerName : "N/A")</td>
-                <td>@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@item.TotalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
-                <td><span class="badge bg-info text-dark">@item.PaymentStatus</span></td>
-                <td>@item.AddressDelivery</td>
-                <td style="text-align: center;">
-                    @Html.ActionLink("Chi tiết", "Details", new { id = item.OrderID }, new { @class = "btn btn-primary btn-sm" })
-                    @Html.ActionLink("Xóa", "Delete", new { id = item.OrderID }, new { @class = "btn btn-danger btn-sm" })
-                </td>
+                <th style="width: 20%;">Ngày đặt hàng</th>
+                <th style="width: 20%;">Tên khách hàng</th>
+                <th style="width: 15%;">Tổng giá trị</th>
+                <th style="width: 20%;">Trạng thái thanh toán</th>
+                <th style="width: 15%;">Phương thức giao hàng</th>
+                <th style="width: 10%; text-align: center;"></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Orders)
+            {
+                <tr>
+                    <td>
+                        @item.OrderDate.ToString("M/d/yyyy h:mm:ss tt")
+                    </td>
+                    <td>
+                        @(item.Customer != null ? item.Customer.CustomerName : "N/A")
+                    </td>
+                    <td>
+                        @item.TotalAmount.ToString("F2")
+                    </td>
+                    <td>
+                        @item.PaymentStatus
+                    </td>
+                    <td>
+                        @item.ShippingMethod
+                    </td>
+                    <td style="text-align: center;">
+                        @Html.ActionLink("Chi tiết đơn hàng", "DetailedOrder", new { id = item.OrderID })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="pagination-container" style="display: flex; justify-content: flex-start; margin-top: 15px; margin-bottom: 30px;">
+        @Html.PagedListPager(Model.Orders, page => Url.Action("Index", new {
+            page = page,
+            customerName = Model.CustomerName,
+            paymentStatus = Model.PaymentStatus,
+            orderDate = Model.OrderDate.HasValue ? Model.OrderDate.Value.ToString("yyyy-MM-dd") : null
+        }))
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center" style="font-size: 24px; font-weight: bold; margin: 40px 0; padding: 25px; letter-spacing: 2px;">
+        KHÔNG CÓ
+    </div>
+}

@@ -29,6 +29,26 @@ namespace _25DH190060_LTW.Models
         public string AddressDelivery { get; set; }
         public string DeliveryMethod { get; set; }
         public string PaymentMethod { get; set; }
+        public string OrderStatus { get; set; }
+
+        [NotMapped]
+        public string OrderStatusDisplay
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(OrderStatus))
+                    return OrderStatus;
+                if (PaymentStatus == "Đã hủy" || PaymentStatus == "Cancelled")
+                    return "Đã hủy";
+                if (PaymentStatus == "Chưa thanh toán")
+                    return "Chờ thanh toán";
+                if (PaymentStatus == "Đã giao" || PaymentStatus == "Giao hàng thành công")
+                    return "Đã giao";
+                if (PaymentStatus == "Đang vận chuyển")
+                    return "Đang vận chuyển";
+                return "Đang xử lý";
+            }
+        }
 
         [NotMapped]
         public string ShippingAddress

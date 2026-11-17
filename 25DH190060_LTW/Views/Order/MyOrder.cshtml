@@ -1,141 +1,166 @@
-﻿@model IEnumerable<_25DH190060_LTW.Models.Order>
+﻿@model _25DH190060_LTW.Models.ViewModel.MyOrderVM
+
 @{
     ViewBag.Title = "Đơn hàng của tôi";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    string currentStatus = ViewBag.CurrentStatus as string ?? "Tất cả";
-    string currentSearch = ViewBag.CurrentSearch as string ?? "";
+
+    var tabs = new List<string> { "Tất cả đơn", "Chờ thanh toán", "Đang xử lý", "Đang vận chuyển", "Đã giao", "Đã hủy" };
 }
 
-<div class="container my-3">
-    <h2>ĐƠN HÀNG CỦA TÔI</h2>
+<div class="container my-4">
+    <h2 class="mb-3">ĐƠN HÀNG CỦA TÔI</h2>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
 
-    <!-- Tabs Trạng thái đơn hàng -->
-    <ul class="nav nav-tabs my-3">
-        <li class="nav-item">
-            <a class="nav-link @(currentStatus == "Tất cả" ? "active" : "")"
-               href="@Url.Action("MyOrder", "Order", new { status = "Tất cả", search = currentSearch })">
-                Tất cả đơn
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link @(currentStatus == "Chờ thanh toán" ? "active" : "")"
-               href="@Url.Action("MyOrder", "Order", new { status = "Chờ thanh toán", search = currentSearch })">
-                Chờ thanh toán
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link @(currentStatus == "Đang xử lý" ? "active" : "")"
-               href="@Url.Action("MyOrder", "Order", new { status = "Đang xử lý", search = currentSearch })">
-                Đang xử lý
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link @(currentStatus == "Đang vận chuyển" ? "active" : "")"
-               href="@Url.Action("MyOrder", "Order", new { status = "Đang vận chuyển", search = currentSearch })">
-                Đang vận chuyển
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link @(currentStatus == "Đã giao" ? "active" : "")"
-               href="@Url.Action("MyOrder", "Order", new { status = "Đã giao", search = currentSearch })">
-                Đã giao
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link @(currentStatus == "Đã hủy" ? "active" : "")"
-               href="@Url.Action("MyOrder", "Order", new { status = "Đã hủy", search = currentSearch })">
-                Đã hủy
-            </a>
-        </li>
+    <!-- 1. THANH TABS TRẠNG THÁI -->
+    <ul class="nav nav-pills mb-3">
+        @foreach (var tab in tabs)
+        {
+            var isCurrent = (Model.ActiveStatus == tab) || (string.IsNullOrEmpty(Model.ActiveStatus) && tab == "Tất cả đơn");
+            <li class="nav-item">
+                <a href="@Url.Action("MyOrder", "Order", new { status = tab, searchTerm = Model.SearchTerm })"
+                   class="nav-link @(isCurrent ? "active" : "")">
+                    @tab
+                </a>
+            </li>
+        }
     </ul>
 
-    <!-- Thanh tìm kiếm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm -->
-    <div class="my-3">
-        @using (Html.BeginForm("MyOrder", "Order", FormMethod.Get, new { @class = "row g-2" }))
-        {
-            <input type="hidden" name="status" value="@currentStatus" />
-            <div class="col-md-9">
-                <input type="text" name="search" class="form-control"
-                       placeholder="Tìm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm..."
-                       value="@currentSearch" />
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
-            </div>
-        }
-    </div>
-
-    <!-- Danh sách đơn hàng -->
-    @if (Model != null && Model.Any())
+    <!-- 2. TÌM KIẾM ĐƠN HÀNG -->
+    @using (Html.BeginForm("MyOrder", "Order", FormMethod.Get, new { @class = "mb-4" }))
     {
-        foreach (var order in Model)
-        {
-            <div class="panel panel-default border my-3 p-3">
-                <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-                    <div>
-                        <strong>Đơn hàng #@order.OrderID</strong>
-                        <span class="text-muted ms-3">Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
-                    </div>
-                    <div>
-                        <span class="badge @(order.PaymentStatus == "Đã hủy" ? "bg-danger" : "bg-secondary")">@order.PaymentStatus</span>
-                    </div>
-                </div>
-                <table class="table table-bordered mb-2">
-                    <tbody>
-                        @if (order.OrderDetail != null)
-                        {
-                            foreach (var detail in order.OrderDetail)
-                            {
-                                <tr>
-                                    <td style="width: 60px;">
-                                        <img src="@Url.Content(detail.Product != null && !string.IsNullOrEmpty(detail.Product.ProductImage) ? detail.Product.ProductImage : "~/Content/images/default_img.png")"
-                                             alt="" style="max-height: 50px; max-width: 50px;" />
-                                    </td>
-                                    <td>
-                                        <strong>@(detail.Product != null ? detail.Product.ProductName : "Sản phẩm #" + detail.ProductID)</strong>
-                                        <div class="text-muted small">Số lượng: @detail.Quantity | Đơn giá: @detail.UnitPrice.ToString("N0") đ</div>
-                                    </td>
-                                    <td class="text-end" style="width: 130px;">
-                                        <strong>@((detail.Quantity * detail.UnitPrice).ToString("N0")) đ</strong>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="text-muted">Địa chỉ nhận hàng: @order.AddressDelivery</small>
-                    </div>
-                    <div>
-                        <span>Tổng tiền: <strong class="text-danger" style="font-size: 16px;">@order.TotalAmount.ToString("N0") đ</strong></span>
-                        <a href="@Url.Action("OrderSuccess", "Order", new { id = order.OrderID })" class="btn btn-outline-primary btn-sm ms-3">
-                            Xem chi tiết
-                        </a>
-                        @if (order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
-                        {
-                            <a href="@Url.Action("CancelOrder", "Order", new { id = order.OrderID })"
-                               class="btn btn-outline-danger btn-sm ms-2"
-                               onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng #@order.OrderID không? Số lượng sản phẩm sẽ được hoàn lại vào kho.');">
-                                Hủy đơn
-                            </a>
-                        }
-                    </div>
-                </div>
-            </div>
-        }
+        <input type="hidden" name="status" value="@Model.ActiveStatus" />
+        <div class="input-group">
+            <input type="text" name="searchTerm" class="form-control" value="@Model.SearchTerm" placeholder="Tìm kiếm theo mã đơn hoặc tên sản phẩm..." />
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+            @if (!string.IsNullOrEmpty(Model.SearchTerm))
+            {
+                <a href="@Url.Action("MyOrder", "Order", new { status = Model.ActiveStatus })" class="btn btn-secondary">Xóa tìm</a>
+            }
+        </div>
+    }
+
+    <!-- 3. DANH SÁCH ĐƠN HÀNG -->
+    @if (Model.TotalUserOrders == 0)
+    {
+        <div class="alert alert-info text-center py-4">
+            <h4>Bạn chưa có đơn hàng nào.</h4>
+            <p class="mb-3">Hãy chọn những cuốn sách yêu thích để đặt hàng ngay!</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Bắt đầu mua sắm</a>
+        </div>
+    }
+    else if (Model.OrderGroups == null || !Model.OrderGroups.Any() || !Model.OrderGroups.Any(g => g.Orders.Any()))
+    {
+        <div class="alert alert-warning text-center py-4">
+            Không tìm thấy đơn hàng nào phù hợp với bộ lọc hiện tại.
+        </div>
     }
     else
     {
-        <p class="text-center my-4">Không tìm thấy đơn hàng nào phù hợp.</p>
+        foreach (var group in Model.OrderGroups)
+        {
+            if (group.Orders != null && group.Orders.Any())
+            {
+                foreach (var order in group.Orders)
+                {
+                    var status = order.OrderStatusDisplay;
+                    string badgeClass = "bg-secondary";
+                    if (status == "Đã giao") { badgeClass = "bg-success"; }
+                    else if (status == "Chờ thanh toán") { badgeClass = "bg-warning text-dark"; }
+                    else if (status == "Đang xử lý" || status == "Đang vận chuyển") { badgeClass = "bg-info text-dark"; }
+                    else if (status == "Đã hủy") { badgeClass = "bg-secondary"; }
+
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                            <div>
+                                <strong>Đơn hàng #@order.OrderID</strong>
+                                <span class="text-muted ms-2">Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div>
+                                <span class="badge @badgeClass fs-6">@status</span>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-0">
+                            <table class="table table-bordered mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 80px;">Hình ảnh</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th style="width: 100px;" class="text-center">Số lượng</th>
+                                        <th style="width: 130px;" class="text-end">Đơn giá</th>
+                                        <th style="width: 140px;" class="text-end">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (order.OrderDetail != null && order.OrderDetail.Any())
+                                    {
+                                        foreach (var detail in order.OrderDetail)
+                                        {
+                                            var pImg = (detail.Product != null && !string.IsNullOrEmpty(detail.Product.ProductImage))
+                                                ? detail.Product.ProductImage
+                                                : "~/Content/images/default_img.png";
+                                            var pName = detail.Product != null ? detail.Product.ProductName : ("Sản phẩm #" + detail.ProductID);
+                                            var lineTotal = detail.TotalPrice.HasValue ? detail.TotalPrice.Value : (detail.Quantity * detail.UnitPrice);
+
+                                            <tr>
+                                                <td class="text-center">
+                                                    <img src="@Url.Content(pImg)" alt="@pName" style="max-height: 50px; max-width: 60px;" class="img-thumbnail" />
+                                                </td>
+                                                <td>
+                                                    <a href="@Url.Action("ProductDetails", "Home", new { id = detail.ProductID })" class="text-decoration-none fw-bold">
+                                                        @pName
+                                                    </a>
+                                                </td>
+                                                <td class="text-center">@detail.Quantity</td>
+                                                <td class="text-end">@detail.UnitPrice.ToString("N0") đ</td>
+                                                <td class="text-end fw-bold">@lineTotal.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="card-footer d-flex justify-content-between align-items-center bg-white">
+                            <div>
+                                <span>Thanh toán: <strong>@order.PaymentStatus</strong> (@order.PaymentMethod)</span>
+                                <span class="ms-3">Giao hàng: <strong>@order.DeliveryMethod</strong></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fs-5 me-2">Tổng tiền: <strong class="text-danger">@order.TotalAmount.ToString("N0") đ</strong></span>
+                                @if (status == "Chờ thanh toán" || status == "Đang xử lý")
+                                {
+                                    <a href="@Url.Action("CancelOrder", "Order", new { id = order.OrderID })"
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?');">
+                                        Hủy đơn
+                                    </a>
+                                }
+                                <a href="@Url.Action("BuyAgain", "Order", new { orderId = order.OrderID })" class="btn btn-primary btn-sm">
+                                    Mua lại
+                                </a>
+                                <a href="@Url.Action("OrderSuccess", "Order", new { id = order.OrderID })" class="btn btn-secondary btn-sm">
+                                    Chi tiết
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
     }
 </div>

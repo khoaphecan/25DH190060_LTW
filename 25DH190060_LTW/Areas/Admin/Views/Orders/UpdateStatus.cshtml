@@ -1,0 +1,66 @@
+@model _25DH190060_LTW.Models.Order
+
+@{
+    ViewBag.Title = "Cập nhật trạng thái đơn hàng #" + Model.OrderID;
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+
+    var paymentStatuses = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "Chưa thanh toán", Value = "Chưa thanh toán", Selected = (Model.PaymentStatus == "Chưa thanh toán") },
+        new SelectListItem { Text = "Thanh toán tiền mặt", Value = "Thanh toán tiền mặt", Selected = (Model.PaymentStatus == "Thanh toán tiền mặt") },
+        new SelectListItem { Text = "Thanh toán paypal", Value = "Thanh toán paypal", Selected = (Model.PaymentStatus == "Thanh toán paypal") },
+        new SelectListItem { Text = "Trả góp", Value = "Trả góp", Selected = (Model.PaymentStatus == "Trả góp") },
+        new SelectListItem { Text = "Đã thanh toán", Value = "Đã thanh toán", Selected = (Model.PaymentStatus == "Đã thanh toán") },
+        new SelectListItem { Text = "Đã hủy", Value = "Đã hủy", Selected = (Model.PaymentStatus == "Đã hủy") }
+    };
+
+    var currentOrderStatus = Model.OrderStatusDisplay;
+    var orderStatuses = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "Chờ thanh toán", Value = "Chờ thanh toán", Selected = (currentOrderStatus == "Chờ thanh toán") },
+        new SelectListItem { Text = "Đang xử lý", Value = "Đang xử lý", Selected = (currentOrderStatus == "Đang xử lý") },
+        new SelectListItem { Text = "Đang vận chuyển", Value = "Đang vận chuyển", Selected = (currentOrderStatus == "Đang vận chuyển") },
+        new SelectListItem { Text = "Đã giao", Value = "Đã giao", Selected = (currentOrderStatus == "Đã giao") },
+        new SelectListItem { Text = "Đã hủy", Value = "Đã hủy", Selected = (currentOrderStatus == "Đã hủy") }
+    };
+}
+
+<h2 class="bg-success">CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG #@Model.OrderID</h2>
+
+<div class="panel panel-default" style="max-width: 650px; padding: 20px; border: 1px solid #ddd; margin-top: 15px;">
+    @using (Html.BeginForm("UpdateStatus", "Orders", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.OrderID)
+
+        <div class="form-group mb-3">
+            <label style="font-weight: bold;">Tên khách hàng:</label>
+            <div>@(Model.Customer != null ? Model.Customer.CustomerName : "N/A")</div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label style="font-weight: bold;">Ngày đặt hàng:</label>
+            <div>@Model.OrderDate.ToString("M/d/yyyy h:mm:ss tt")</div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label style="font-weight: bold;">Tổng giá trị:</label>
+            <div style="font-weight: bold; color: #d9534f;">@Model.TotalAmount.ToString("F2")</div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label style="font-weight: bold;" for="paymentStatus">Trạng thái thanh toán:</label>
+            @Html.DropDownList("paymentStatus", paymentStatuses, new { @class = "form-control", @style = "max-width: 350px;" })
+        </div>
+
+        <div class="form-group mb-4">
+            <label style="font-weight: bold;" for="orderStatus">Trạng thái đơn hàng (vận chuyển):</label>
+            @Html.DropDownList("orderStatus", orderStatuses, new { @class = "form-control", @style = "max-width: 350px;" })
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-primary" style="min-width: 130px; margin-right: 8px;">Lưu thay đổi</button>
+            @Html.ActionLink("Quay lại chi tiết", "DetailedOrder", new { id = Model.OrderID }, new { @class = "btn btn-default", @style = "border: 1px solid #ccc; min-width: 130px;" })
+        </div>
+    }
+</div>

@@ -35,6 +35,7 @@
           <Property Name="AddressDelivery" Type="nvarchar(max)" Nullable="false" />
           <Property Name="DeliveryMethod" Type="nvarchar(max)" />
           <Property Name="PaymentMethod" Type="nvarchar(max)" />
+          <Property Name="OrderStatus" Type="nvarchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="OrderDetail">
           <Key>
@@ -204,6 +205,7 @@
           <Property Name="AddressDelivery" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="DeliveryMethod" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="PaymentMethod" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="OrderStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Customer" Relationship="Self.FK__Order__CustomerI__5441852A" FromRole="Order" ToRole="Customer" />
           <NavigationProperty Name="OrderDetail" Relationship="Self.FK__OrderDeta__Order__5812160E" FromRole="Order" ToRole="OrderDetail" />
         </EntityType>
@@ -379,6 +381,7 @@
                 <ScalarProperty Name="AddressDelivery" ColumnName="AddressDelivery" />
                 <ScalarProperty Name="DeliveryMethod" ColumnName="DeliveryMethod" />
                 <ScalarProperty Name="PaymentMethod" ColumnName="PaymentMethod" />
+                <ScalarProperty Name="OrderStatus" ColumnName="OrderStatus" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

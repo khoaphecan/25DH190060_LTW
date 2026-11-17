@@ -6,7 +6,9 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using PagedList;
 using _25DH190060_LTW.Models;
+using _25DH190060_LTW.Models.ViewModel;
 
 namespace _25DH190060_LTW.Areas.Admin.Controllers
 {
@@ -14,70 +16,137 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
     {
         private MyStoreEntities db = new MyStoreEntities();
 
-        // GET: Admin/Orders
-        public ActionResult Index()
+        // GET: Admin/Orders/Index
+        public ActionResult Index(string customerName, string paymentStatus, DateTime? orderDate, int? page)
         {
-            var orders = db.Order.Include(o => o.Customer).OrderByDescending(o => o.OrderDate).ToList();
-            return View(orders);
+            var orders = db.Orders.Include(o => o.Customer).AsQueryable();
+
+            // Lọc theo tên khách hàng
+            if (!string.IsNullOrEmpty(customerName))
+            {
+                orders = orders.Where(o => o.Customer != null && o.Customer.CustomerName.Contains(customerName));
+            }
+
+            // Lọc theo trạng thái thanh toán
+            if (!string.IsNullOrEmpty(paymentStatus))
+            {
+                orders = orders.Where(o => o.PaymentStatus == paymentStatus);
+            }
+
+            // Lọc theo ngày đặt hàng (dùng DbFunctions.TruncateTime tránh lỗi Linq to Entities)
+            if (orderDate.HasValue)
+            {
+                DateTime targetDate = orderDate.Value.Date;
+                orders = orders.Where(o => DbFunctions.TruncateTime(o.OrderDate) == targetDate);
+            }
+
+            // Sắp xếp mới nhất lên đầu
+            orders = orders.OrderByDescending(o => o.OrderDate).ThenByDescending(o => o.OrderID);
+
+            // Phân trang 15 đơn hàng / trang
+            int pageNumber = page ?? 1;
+            int pageSize = 15;
+            var pagedOrders = orders.ToPagedList(pageNumber, pageSize);
+
+            var model = new OrderSearchVM
+            {
+                CustomerName = customerName,
+                PaymentStatus = paymentStatus,
+                OrderDate = orderDate,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Orders = pagedOrders
+            };
+
+            if (!string.IsNullOrEmpty(paymentStatus))
+            {
+                foreach (var item in model.PaymentStatusList)
+                {
+                    item.Selected = (item.Value == paymentStatus);
+                }
+            }
+
+            return View(model);
         }
 
-        // GET: Admin/Orders/Details/5
+        // GET: Admin/Orders/DetailedOrder/5
+        public ActionResult DetailedOrder(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Order order = db.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetail.Select(od => od.Product))
+                .SingleOrDefault(o => o.OrderID == id);
+
+            if (order == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(order);
+        }
+
+        // GET: Admin/Orders/Details/5 (hỗ trợ điều hướng tới DetailedOrder)
         public ActionResult Details(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Order order = db.Order.Include(o => o.Customer).Include(o => o.OrderDetail.Select(d => d.Product)).FirstOrDefault(o => o.OrderID == id);
-            if (order == null)
-            {
-                return HttpNotFound();
-            }
-            return View(order);
+            return DetailedOrder(id);
         }
 
-        // GET: Admin/Orders/Edit/5
-        public ActionResult Edit(int? id)
+        // GET: Admin/Orders/UpdateStatus/5
+        public ActionResult UpdateStatus(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order order = db.Order.Find(id);
+
+            Order order = db.Orders.Include(o => o.Customer).SingleOrDefault(o => o.OrderID == id);
             if (order == null)
             {
                 return HttpNotFound();
             }
+
             return View(order);
         }
 
-        // POST: Admin/Orders/Edit/5
+        // POST: Admin/Orders/UpdateStatus/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "OrderID,CustomerID,OrderDate,TotalAmount,PaymentStatus,AddressDelivery")] Order order)
+        public ActionResult UpdateStatus(int id, string paymentStatus, string orderStatus)
         {
-            if (ModelState.IsValid)
+            Order order = db.Orders.Include(o => o.OrderDetail).SingleOrDefault(o => o.OrderID == id);
+            if (order == null)
             {
-                // Kiểm tra nếu trạng thái chuyển sang "Đã hủy" thì hoàn trả lại số lượng tồn kho
-                var oldOrder = db.Order.Include(o => o.OrderDetail).AsNoTracking().FirstOrDefault(o => o.OrderID == order.OrderID);
-                if (oldOrder != null && oldOrder.PaymentStatus != "Đã hủy" && order.PaymentStatus == "Đã hủy")
+                return HttpNotFound();
+            }
+
+            // Kiểm tra nếu chuyển sang "Đã hủy" thì hoàn trả lại số lượng tồn kho
+            bool wasCancelled = order.PaymentStatus == "Đã hủy" || order.OrderStatus == "Đã hủy";
+            bool nowCancelled = paymentStatus == "Đã hủy" || orderStatus == "Đã hủy";
+
+            if (!wasCancelled && nowCancelled)
+            {
+                foreach (var d in order.OrderDetail)
                 {
-                    var details = db.OrderDetail.Where(d => d.OrderID == order.OrderID).ToList();
-                    foreach (var d in details)
+                    var pro = db.Products.Find(d.ProductID);
+                    if (pro != null)
                     {
-                        var pro = db.Product.Find(d.ProductID);
-                        if (pro != null)
-                        {
-                            pro.Quantity += d.Quantity;
-                        }
+                        pro.Quantity += d.Quantity;
                     }
                 }
-
-                db.Entry(order).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
             }
-            return View(order);
+
+            order.PaymentStatus = paymentStatus;
+            order.OrderStatus = orderStatus;
+
+            db.Entry(order).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return RedirectToAction("DetailedOrder", new { id = order.OrderID });
         }
 
         // GET: Admin/Orders/Delete/5
@@ -87,14 +156,17 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order order = db.Order
+
+            Order order = db.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.OrderDetail.Select(d => d.Product))
                 .FirstOrDefault(o => o.OrderID == id);
+
             if (order == null)
             {
                 return HttpNotFound();
             }
+
             return View(order);
         }
 
@@ -103,15 +175,15 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Order order = db.Order.Include(o => o.OrderDetail).FirstOrDefault(o => o.OrderID == id);
+            Order order = db.Orders.Include(o => o.OrderDetail).FirstOrDefault(o => o.OrderID == id);
             if (order != null)
             {
                 // Nếu đơn hàng chưa bị hủy thì khi xóa hoàn trả lại số lượng tồn kho
-                if (order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
+                if (order.PaymentStatus != "Đã hủy" && order.OrderStatus != "Đã hủy")
                 {
                     foreach (var d in order.OrderDetail)
                     {
-                        var pro = db.Product.Find(d.ProductID);
+                        var pro = db.Products.Find(d.ProductID);
                         if (pro != null)
                         {
                             pro.Quantity += d.Quantity;
@@ -119,34 +191,15 @@ namespace _25DH190060_LTW.Areas.Admin.Controllers
                     }
                 }
 
-                var details = db.OrderDetail.Where(d => d.OrderID == id).ToList();
+                var details = db.OrderDetails.Where(d => d.OrderID == id).ToList();
                 foreach (var d in details)
                 {
-                    db.OrderDetail.Remove(d);
+                    db.OrderDetails.Remove(d);
                 }
-                db.Order.Remove(order);
+                db.Orders.Remove(order);
                 db.SaveChanges();
             }
-            return RedirectToAction("Index");
-        }
 
-        // POST: Admin/Orders/Cancel/5
-        public ActionResult Cancel(int id)
-        {
-            Order order = db.Order.Include(o => o.OrderDetail).FirstOrDefault(o => o.OrderID == id);
-            if (order != null && order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Cancelled")
-            {
-                foreach (var d in order.OrderDetail)
-                {
-                    var pro = db.Product.Find(d.ProductID);
-                    if (pro != null)
-                    {
-                        pro.Quantity += d.Quantity;
-                    }
-                }
-                order.PaymentStatus = "Đã hủy";
-                db.SaveChanges();
-            }
             return RedirectToAction("Index");
         }
 

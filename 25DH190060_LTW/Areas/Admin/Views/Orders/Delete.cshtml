@@ -7,13 +7,15 @@
 
 <h2 class="bg-success">XÓA ĐƠN HÀNG #@Model.OrderID</h2>
 
-<h4 class="alert alert-danger">Bạn có chắc chắn muốn xóa đơn hàng này không? Dữ liệu chi tiết đơn hàng sẽ bị xóa và số lượng tồn kho sẽ được hoàn trả.</h4>
+<div class="alert alert-danger">
+    Bạn có chắc chắn muốn xóa đơn hàng này không? Dữ liệu chi tiết đơn hàng sẽ bị xóa và số lượng tồn kho sẽ được hoàn trả.
+</div>
 
-<div class="card mb-4">
-    <div class="card-header bg-info font-weight-bold" style="background-color: #d8ebd2 !important; color: #2d572c;">
+<div class="panel panel-default border mb-4">
+    <div class="panel-heading bg-light p-2 font-weight-bold">
         Thông Tin Đơn Hàng
     </div>
-    <div class="card-body">
+    <div class="panel-body p-3">
         <dl class="row mb-0">
             <dt class="col-sm-3 font-weight-bold">Mã đơn hàng:</dt>
             <dd class="col-sm-9">#@Model.OrderID</dd>
@@ -28,22 +30,22 @@
             <dd class="col-sm-9">@Model.AddressDelivery</dd>
 
             <dt class="col-sm-3 font-weight-bold">Trạng thái thanh toán:</dt>
-            <dd class="col-sm-9"><span class="badge bg-info text-dark">@Model.PaymentStatus</span></dd>
+            <dd class="col-sm-9"><span class="badge bg-secondary">@Model.PaymentStatus</span></dd>
 
             <dt class="col-sm-3 font-weight-bold">Tổng tiền:</dt>
-            <dd class="col-sm-9 text-danger font-weight-bold" style="font-size: 18px;">@Model.TotalAmount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</dd>
+            <dd class="col-sm-9 text-danger font-weight-bold">@Model.TotalAmount.ToString("N0") đ</dd>
         </dl>
     </div>
 </div>
 
-<h3 style="color: #2d572c;" class="mb-3">DANH SÁCH MẶT HÀNG TRONG ĐƠN</h3>
-<table class="table table-bordered">
-    <thead class="table-success" style="background-color: #d8ebd2;">
-        <tr>
+<h4 class="mb-3">DANH SÁCH MẶT HÀNG TRONG ĐƠN</h4>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr class="bg-success">
             <th>Tên sản phẩm</th>
-            <th>Số lượng</th>
-            <th>Đơn giá</th>
-            <th>Thành tiền</th>
+            <th class="text-center" style="width: 100px;">Số lượng</th>
+            <th class="text-end" style="width: 140px;">Đơn giá</th>
+            <th class="text-end" style="width: 140px;">Thành tiền</th>
         </tr>
     </thead>
     <tbody>
@@ -53,9 +55,9 @@
             {
                 <tr>
                     <td>@(detail.Product != null ? detail.Product.ProductName : "SP #" + detail.ProductID)</td>
-                    <td>@detail.Quantity</td>
-                    <td>@detail.UnitPrice.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</td>
-                    <td>@((detail.Quantity * detail.UnitPrice).ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")))</td>
+                    <td class="text-center">@detail.Quantity</td>
+                    <td class="text-end">@detail.UnitPrice.ToString("N0") đ</td>
+                    <td class="text-end fw-bold">@((detail.Quantity * detail.UnitPrice).ToString("N0")) đ</td>
                 </tr>
             }
         }
@@ -72,8 +74,8 @@
 {
     @Html.AntiForgeryToken()
 
-    <div class="form-actions no-color mt-3">
+    <div class="form-actions mt-3">
         <input type="submit" value="Xóa đơn hàng" class="btn btn-danger" />
-        @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-primary" })
+        @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-secondary" })
     </div>
 }
